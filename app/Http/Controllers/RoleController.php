@@ -12,7 +12,8 @@ class RoleController extends Controller
      */
     public function index()
     {
-        //
+        $roles = Role::all(); // Obtiene todos los roles de la base de datos
+        return response()->json($roles); // Devuelve los roles en formato JSON
     }
 
     /**

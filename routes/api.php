@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\RoleController;
 use App\Http\Controllers\BarberController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\RegisterController;
@@ -27,6 +28,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 //Registro de usuarios
+
+// Ruta para obtener los roles
+Route::get('roles', [RoleController::class, 'index']);
 
 Route::post('/registro', [AuthController::class, 'register']);
 
