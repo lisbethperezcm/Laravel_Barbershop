@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\AppointmentRequest;
 use App\Http\Resources\AppointmentCollection;
+use App\Http\Resources\AppointmentResource;
 
 class AppointmentController extends Controller
 {
@@ -22,11 +23,6 @@ class AppointmentController extends Controller
         //colección de barberos
         return new AppointmentCollection($appointments);
     }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-  
     /**
      * Store a newly created resource in storage.
      */
@@ -41,10 +37,10 @@ class AppointmentController extends Controller
  
         $client_id = $request->client_id ?? $user->person->client->id ?? null;
 
- // Verificar si el usuario tiene un cliente asociado
- if (!$client_id) {
+    // Verificar si el usuario tiene un cliente asociado
+    if (!$client_id) {
      return response()->json(['error' => 'El usuario no tiene un cliente asociado.'], 400);
- }
+    }
          // Obtener el cliente asociado
        //$client = Client::findOrFail($client_id);
  
@@ -76,24 +72,45 @@ class AppointmentController extends Controller
      */
     public function show(Appointment $appointment)
     {
-        //
-    }
+        //Consultar la cita uniendo las relaciones de los otros modelos
+       $appointment = Appointment::with(['barber', 'client', 'services', 'createdBy.person'])->findOrFail($appointment->id);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Appointment $appointment)
-    {
-        //
+     
+        //Retornar la cita encontrada formateada con AppointmentResource
+        return new AppointmentResource($appointment);
     }
+    
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Appointment $appointment)
-    {
-        //
+    
+     public function update(Request $request, Appointment $appointment)
+{
+    // Obtener los datos de la solicitud sin validación
+   
+    $appointment = Appointment::findOrFail($appointment->id);    
+        
+    
+    $validatedData = $request->all();
+
+    // Actualizar la cita con los datos recibidos
+    $appointment->update($validatedData);
+
+    // Si se enviaron servicios, actualizarlos
+    if (isset($validatedData['services'])) {
+        $appointment->services()->sync($validatedData['services']);
     }
+
+    // Devolver la cita actualizada
+    return response()->json([
+        'message' => 'Appointment updated successfully',
+        'data' => new AppointmentResource($appointment) // Devuelve el recurso actualizado
+    ], 200);
+}
+
+    
+
 
     /**
      * Remove the specified resource from storage.

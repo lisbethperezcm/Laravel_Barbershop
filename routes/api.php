@@ -10,6 +10,7 @@ use App\Http\Controllers\BarberController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\ScheduleController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
 /*
@@ -41,13 +42,24 @@ Route::get('/barberos', [BarberController::class, 'index']);
 //Obtener clientes
 Route::get('/clientes', [ClientController::class, 'index']);
 
+
+
+
+Route::post('/barberos/horariosDisponibles', [ScheduleController::class, 'getAvailableSlots']);
+
 //Crear clita 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/appointments', [AppointmentController::class, 'store']);
+    Route::put('/appointment/{appointment}', [AppointmentController::class, 'update']);
     
 });
 
 Route::get('/appointments', [AppointmentController::class, 'index']);
+
+
+Route::get('appointments/{appointment}', [AppointmentController::class, 'show']);
+
+
 
 
 Route::post('/email/verification-notification', function (Request $request) {
