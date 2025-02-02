@@ -97,6 +97,10 @@ class AppointmentController extends Controller
     // Actualizar la cita con los datos recibidos
     $appointment->update($validatedData);
 
+    if ($appointment->status === 'completada') {
+        // Llamar al método para crear la factura pasando el objeto appointment
+        app(InvoiceController::class)->storeFromAppointment($appointment);
+    }
     // Si se enviaron servicios, actualizarlos
     if (isset($validatedData['services'])) {
         $appointment->services()->sync($validatedData['services']);
