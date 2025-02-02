@@ -26,6 +26,10 @@ class Service extends Model
     {
         return $this->belongsToMany(Appointment::class, 'appointment_service');
     }
+    public function invoiceDetails()
+    {
+        return $this->hasMany(InvoiceDetail::class);
+    }
     public static function boot()
     {
         parent::boot();

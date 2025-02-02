@@ -14,7 +14,6 @@ class Invoice extends Model
         'appointment_id',
         'total_amount',
         'tax_amount',
-        'end_time',
         'status',
         'created_by',
         'updated_by',
@@ -35,7 +34,10 @@ class Invoice extends Model
         {
             return $this->belongsTo(Appointment::class);
         }
-    
+        public function InvoiceDetails()
+        {
+            return $this->hasMany(InvoiceDetail::class);
+        }
     
 
     public static function boot()
