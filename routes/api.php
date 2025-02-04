@@ -61,6 +61,10 @@ Route::get('appointments/{appointment}', [AppointmentController::class, 'show'])
 
 
 
+Route::get('/roles/{role}', [RoleController::class, 'show']);
+Route::put('/roles/{role}', [RoleController::class, 'update']);
+
+
 
 Route::post('/email/verification-notification', function (Request $request) {
     $request->user()->sendEmailVerificationNotification();
