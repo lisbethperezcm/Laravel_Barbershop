@@ -26,6 +26,9 @@ class Service extends Model
     {
         return $this->belongsToMany(Appointment::class, 'appointment_service');
     }
+    
+
+
     public static function boot()
     {
         parent::boot();
@@ -36,4 +39,6 @@ class Service extends Model
             $person->updated_by = auth()->user()->id;
         });
     }
+    
+
 }
