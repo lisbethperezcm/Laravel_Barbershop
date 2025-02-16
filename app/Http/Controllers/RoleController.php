@@ -23,10 +23,7 @@ class RoleController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
-        
-    }
+    public function store(Request $request) {}
 
     /**
      * Display the specified resource.
@@ -45,16 +42,15 @@ class RoleController extends Controller
      */
     public function update(Request $request, Role $role)
     {
+ 
 
-        // Obtener los datos de la solicitud sin validación
-   
-    $role = Role::findOrFail($role->id);    
-        
-    
-    $validatedData = $request->all();
+        $role = Role::findOrFail($role->id);
 
-    // Actualizar la cita con los datos recibidos
-    $role->update($validatedData);
+
+        $validatedData = $request->all();
+
+        // Actualizar la cita con los datos recibidos
+        $role->update($validatedData);
 
 
         // Respuesta en formato JSON

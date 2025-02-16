@@ -71,6 +71,10 @@ Route::get('/roles/{role}', [RoleController::class, 'show']);
 Route::put('/roles/{role}', [RoleController::class, 'update']);
 
 
+Route::get('/roles/{role}', [RoleController::class, 'show']);
+Route::put('/roles/{role}', [RoleController::class, 'update']);
+
+
 //getServiciosById
 Route::get('/servicios/{service}', [ServiceController::class, 'show']);
 
