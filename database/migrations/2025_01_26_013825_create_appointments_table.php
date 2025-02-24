@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id(); // ID de la cita
             $table->foreignId('client_id')->constrained('clients')->onDelete('cascade'); // Relación con el cliente (cliente que reserva la cita)
             $table->foreignId('barber_id')->constrained('barbers')->onDelete('cascade'); // Relación con el barbero
-            $table->date('appointment_date')->nullable(); // Fecha
+            $table->date('appointment_date'); // Fecha
             $table->time('start_time');  // Hora de inicio
             $table->time('end_time');    // Hora de fin
             $table->string('status')->default('confirmada'); // Estado de la cita

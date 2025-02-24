@@ -20,14 +20,14 @@ class InvoiceController extends Controller
     public function storeFromAppointment(Appointment $appointment)
     {
         // Calcular el total y el impuesto de la cita
-        $total = $this->calculateTotalForAppointment($appointment);
-        $tax = $this->calculateTax($total);
+        $subtotal = $this->calculateSubtotalForAppointment($appointment);
+        $tax = $this->calculateTax($subtotal);
       
         // Crear la factura
         $invoice = Invoice::create([
             'appointment_id' => $appointment->id,
             'tax_amount' => $tax,
-            'total_amount' => $total,
+            'total_amount' => $subtotal + $tax,// Suma del subtotal y el itbis
             'client_id' => $appointment->client_id,  // Relación de cliente
         ]);
 
@@ -36,12 +36,12 @@ class InvoiceController extends Controller
 
         $user = User::find($appointment->client->person->user_id);
         
-       $invoice->refresh();  // Asegúrate de que la factura esté actualizada
+       $invoice->refresh(); 
+       // Enviar la notificación
        $user->notify(new InvoiceGeneratedNotification($invoice));
-// Enviar la notificación
-      
 
-        // Retornar la respuesta de éxito
+
+        // Retornar la respuesta
         return response()->json([
             'message' => 'Invoice created successfully',
             'data' => $invoice
@@ -56,7 +56,7 @@ class InvoiceController extends Controller
      * @param  Appointment  $appointment
      * @return float
      */
-    protected function calculateTotalForAppointment(Appointment $appointment)
+    protected function calculateSubtotalForAppointment(Appointment $appointment)
     {
         // Calcular el total sumando los precios de los servicios de la cita
         return $appointment->services->sum('current_price');
@@ -68,10 +68,10 @@ class InvoiceController extends Controller
      * @param  float  $total
      * @return float
      */
-    protected function calculateTax($total)
+    protected function calculateTax($subtotal)
     {
         // Suponiendo un impuesto del 18%
-        return $total * 0.18;
+        return $subtotal * 0.18;
     }
 
     /**
