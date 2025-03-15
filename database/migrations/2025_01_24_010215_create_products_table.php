@@ -22,9 +22,10 @@ return new class extends Migration
             $table->foreignId('status_id')->nullable()->constrained('estatus')->onDelete('set null');
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->boolean('is_deleted')->default(false);
             $table->timestamps();
 
-            $table->boolean('is_deleted')->default(false);
+           
         });
     }
 
@@ -34,7 +35,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('appointment_service', function (Blueprint $table) {
+        Schema::table('products', function (Blueprint $table) {
             $table->dropForeign(['status_id']);
             $table->dropForeign(['created_by']);
             $table->dropForeign(['updated_by']);

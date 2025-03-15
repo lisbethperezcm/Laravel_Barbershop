@@ -38,7 +38,11 @@ class Product extends Model
     {
         return $this->belongsTo(Estatus::class);
     }
-
+    public function invoiceDetails()
+    {
+        return $this->hasMany(InvoiceDetail::class);
+    }
+    
     public static function boot()
     {
         parent::boot();

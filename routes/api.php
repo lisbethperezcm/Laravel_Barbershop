@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\Client;
+use App\Models\Invoice;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -8,9 +10,11 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\BarberController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RegisterController;
-use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\AppointmentController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
 /*
@@ -51,12 +55,14 @@ Route::post('/barberos/horariosDisponibles', [ScheduleController::class, 'getAva
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/appointments', [AppointmentController::class, 'store']);
     Route::put('/appointment/{appointment}', [AppointmentController::class, 'update']);
-    
+    Route::post('/products', [ProductController::class, 'store']);
+
 });
+Route::post('/invoices', [InvoiceController::class, 'store']);
 
 Route::get('/appointments', [AppointmentController::class, 'index']);
 
-
+Route::get('/products', [ProductController::class, 'index']);
 Route::get('appointments/{appointment}', [AppointmentController::class, 'show']);
 
 

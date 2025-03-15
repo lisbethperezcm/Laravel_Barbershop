@@ -13,15 +13,17 @@ return new class extends Migration
     {
         Schema::create('invoices', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('appointment_id')->constrained('appointments')->onDelete('cascade');
+            $table->foreignId('appointment_id')->nullable()->constrained('appointments')->onDelete('set null');
             $table->foreignId('client_id')->constrained('clients')->onDelete('cascade');
-            $table->decimal('total_amount', 10, 2);
-            $table->decimal('tax_amount', 10, 2);
-            $table->string('status')->default('generada');
-            $table->foreignId('created_by')->nullable();
-            $table->foreign('created_by')->references('id')->on('users')->onDelete('set null');
-            $table->foreignId('updated_by')->nullable();
-            $table->foreign('updated_by')->references('id')->on('users')->onDelete('set null');
+            $table->decimal('total', 10, 2);
+            $table->decimal('itbis', 10, 2);
+            $table->foreignId('payment_type_id')->nullable()->constrained('payment_type')->onDelete('set null');
+            $table->string('reference_number',50);//Numero de referencia si el pago se hace con transferencia  
+            $table->string('aprovation_number',50);//Numero de aprobacion si el pago se hace con tarjeta  
+            $table->foreignId('status_id')->constrained('status')->onDelete('set null');
+            $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null'); // Relación con el usuario que creó la factura
+            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null'); // Relación con el usuario que actualizó la factura         
+            $table->boolean('is_deleted')->default(false);
             $table->timestamps();
         });
     }
@@ -36,6 +38,7 @@ return new class extends Migration
             $table->dropForeign(['client_id']);
             $table->dropForeign(['created_by']);
             $table->dropForeign(['updated_by']);
+            $table->dropForeign(['status_id']);
 
         });  
         Schema::dropIfExists('invoices');

@@ -11,21 +11,44 @@ class InvoiceResource extends JsonResource
      * Transform the resource into an array.
      *
      * @return array<string, mixed>
+    
      */
     public function toArray(Request $request)
     {
         return [
             'id' => $this->id,
+            'appointment_id' => $this->appointment_id,
             'client_name' => $this->client->person->first_name . ' ' . $this->client->person->last_name,
-            'barber_name' => $this->barber->person->first_name . ' ' . $this->barber->person->last_name,
-            'status' => $this->status,
-            'appointment_date' => $this->appointment_date,
-            'start_time' => $this->start_time,
-            'end_time' => $this->end_time,
+            'details' => $this->invoiceDetails->map(fn($detail) => [
+            'type' => $detail->service_id ? 'service' : 'product',
+            'name' => $detail->service_id ? $detail->service->name : $detail->product->name,
+            'quantity' => $detail->quantity,
+            'price' => $detail->price,
+             'itbis' =>$detail->product_id 
+                ? $this->getFloat( $detail->price * $detail->quantity * $detail->product->itbis): 0.00,
+           
+                'subtotal' => $this->getFloat($detail->price * $detail->quantity)   
+    ]),
+            'itbis' => $this->itbis,
+            'subtotal'=>floatval($this->total - $this->itbis),
+            'total' => $this->total,
+           
             'created_at' => $this->created_at,
-            'created_by' => $this->createdBy ? $this->createdBy->person->first_name . ' ' . $this->createdBy->person->last_name : 'desconocido',
-            'updated_at' => $this->updated_at,
-            'services' => $this->services->map(fn($service) => $service->name)
+          
         ];
     }
+
+     /**
+     * Transform the resource into an array.
+     *
+     * @return float
+    
+     */
+
+public function getFloat($item): float
+{
+    
+    return round(floatval($item), 2);
+}
+
 }

@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Invoice;
+use App\Models\Product;
 use App\Models\Appointment;
 use Illuminate\Http\Request;
 use App\Models\InvoiceDetail;
+use App\Http\Resources\InvoiceResource;
 use App\Notifications\InvoiceGeneratedNotification;
 use App\Models\Service;  // Asegúrate de importar el modelo de servicios si lo usas.
 
@@ -17,34 +19,70 @@ class InvoiceController extends Controller
      * @param  Appointment  $appointment
      * @return \Illuminate\Http\Response
      */
-    public function storeFromAppointment(Appointment $appointment)
+    public function store(Request $request)
     {
-        // Calcular el total y el impuesto de la cita
-        $subtotal = $this->calculateSubtotalForAppointment($appointment);
-        $tax = $this->calculateTax($subtotal);
-      
+        
+        $request->validate([
+          //  'appointment_id' => 'nullable|exists:appointments,id',
+           // 'client_id' => 'required_without:appointment_id|exists:clients,id',
+            //products' => 'nullable|array',
+            //'products.*.id' => 'required_with:products|exists:products,id',
+            //'products.*.quantity' => 'required_with:products|integer|min:1',
+        ]);
+        
+        $appointment = $request->filled('appointment_id') ? Appointment::findOrFail($request->appointment_id) : null;
+
+          // Asignar el id del cliente si se obtiene de la cita o se obtiene de fomulario
+          $client_id = $appointment ? $appointment->client_id : $request->client_id;
+        
+
+             if (!$appointment && empty($request->products)) {
+            return response()->json([
+                'message' => 'Debe proporcionar una cita o al menos un producto.'
+            ], 400);
+        }
+       
+        $products = $request->input('products', []);
+        
+        // Calcular subtotales y ITBIS
+        $servicesSubtotal = $appointment ? $this->getServicesSubtotal($appointment) : 0;
+        $productsSubtotal = $this->getProductsSubtotal($products);
+        $taxAmount = $this->getProductsTaxAmount($products);
+        
+
+       
         // Crear la factura
         $invoice = Invoice::create([
-            'appointment_id' => $appointment->id,
-            'tax_amount' => $tax,
-            'total_amount' => $subtotal + $tax,// Suma del subtotal y el itbis
-            'client_id' => $appointment->client_id,  // Relación de cliente
+            'appointment_id' => $appointment?->id,
+            'client_id' => $client_id,
+            'total' => $servicesSubtotal + $productsSubtotal + $taxAmount,
+            'itbis' => $taxAmount,
+            'status_id'=>$request->status_id,
+            'reference_number'=> '11221222',
+            'aprovation_number'=>'11221222'
+
         ]);
+       
+       
+         // Crear los detalles de la factura
+         $this->storeInvoiceDetails($invoice, $appointment, $products);
 
-        // Crear los detalles de la factura
-        $this->createInvoiceDetails($invoice, $appointment);
+      
+    
 
-        $user = User::find($appointment->client->person->user_id);
+        //$user = User::find($appointment->client->person->user_id);
         
-       $invoice->refresh(); 
+      // $invoice->refresh(); 
        // Enviar la notificación
-       $user->notify(new InvoiceGeneratedNotification($invoice));
+      // $user->notify(new InvoiceGeneratedNotification($invoice));
 
+      $invoice = Invoice::with(['appointment', 'client.person', 'invoiceDetails.product', 'invoiceDetails.service'])
+      ->find($invoice->id);
 
         // Retornar la respuesta
         return response()->json([
-            'message' => 'Invoice created successfully',
-            'data' => $invoice
+            'message' => 'Factura creada correctamente',
+            'data' => new InvoiceResource($invoice)
         ], 201);
 
       
@@ -56,54 +94,90 @@ class InvoiceController extends Controller
      * @param  Appointment  $appointment
      * @return float
      */
-    protected function calculateSubtotalForAppointment(Appointment $appointment)
-    {
+
+
+
+     protected function getServicesSubtotal(Appointment $appointment): float
+     {
         // Calcular el total sumando los precios de los servicios de la cita
-        return $appointment->services->sum('current_price');
-    }
+         return $appointment->services->sum('current_price');
+     }
 
-    /**
-     * Calcular el impuesto basado en el total.
-     *
-     * @param  float  $total
-     * @return float
-     */
-    protected function calculateTax($subtotal)
+     protected function getProductsSubtotal(?array $products): float
     {
-        // Suponiendo un impuesto del 18%
-        return $subtotal * 0.18;
-    }
 
-    /**
-     * Crear los detalles de la factura a partir de los servicios de la cita.
-     *
-     * @param  Invoice  $invoice
-     * @param  Appointment  $appointment
-     * @return void
-     */
-    protected function createInvoiceDetails(Invoice $invoice, Appointment $appointment)
-    {
-       
-    
-        // Iterar sobre los servicios de la cita y crear un detalle de factura para cada uno
-        foreach ($appointment->services as $service) {
-            // Calcular el precio total del servicio considerando la cantidad de 1 por defecto
-            $serviceTotal = $service->current_price; // Si quantity es 1 por defecto, el total es igual al precio
-    
-            // Crear un detalle de factura para cada servicio
-            InvoiceDetail::create([
-                'invoice_id' => $invoice->id,
-                'service_id' => $service->id,
-                'quantity' => 1,  // Establecer la cantidad a 1
-                'price' => $service->current_price,
-                'total' => $serviceTotal,  // Guardar el total calculado para este servicio
-            ]);
-    
-            // Sumar el precio total de este servicio al total general de la factura
-         
+        $productsDB = Product::whereIn('id', collect($products)->pluck('id'))->get()->keyBy('id');
+
+        $total = 0;
+
+        foreach ($products as $product) {
+            if (isset($productsDB[$product['id']])) {
+                $total += $productsDB[$product['id']]->sale_price * $product['quantity'];
+            }
         }
-    
+
+        return $total;
+
     }
+ 
+ /**
+     * Obtener el ITBIS basado en los productos (los servicios no llevan ITBIS).
+     */
+    protected function getProductsTaxAmount(?array $products): float
+    {
+
+        if (empty($products)) {
+            return 0;
+        }
+
+    // Cargar todos los productos en una sola consulta
+    $productsDB = Product::whereIn('id', collect($products)->pluck('id'))->get()->keyBy('id');
+
+    // Calcular el ITBIS sumando (itbis * cantidad) de cada producto
+    return collect($products)->sum(fn($product) => 
+    ($productsDB[$product['id']]->sale_price * $product['quantity'] * $productsDB[$product['id']]->itbis ?? 0) 
+);
+  
+  
+    //  return collect($products)->sum(fn($product) => $productsDB[$product['id']]->itbis * $product['quantity'] ?? 0);;
+    }
+
+
+    //Crea el detalle de la factura en InvoiceDetails  
+     protected function storeInvoiceDetails(Invoice $invoice, ?Appointment $appointment, ?array $products): void
+     {
+         // Agregar servicios si hay una cita
+         if (isset($appointment)) {
+             foreach ($appointment->services as $service) {
+                 InvoiceDetail::create([
+                     'invoice_id' => $invoice->id,
+                     'service_id' => $service->id,
+                     'product_id' => null,
+                     'quantity' => 1,
+                     'price' => $service->current_price,
+                     //'total' => $service->current_price,
+                 ]);
+             }
+         }
+ 
+         // Agregar productos si hay
+         if (isset($products)) {
+             foreach ($products as $item) {
+                 $product = Product::find($item['id']);
+                 if ($product) {
+                     InvoiceDetail::create([
+                         'invoice_id' => $invoice->id,
+                         'service_id' => null,
+                         'product_id' => $product->id,
+                         'quantity' => $item['quantity'],
+                         'price' => $product->sale_price,
+                         //'total' => ($product->sale_price * $item['quantity']) + ($product->itbis * $item['quantity']),
+                     ]);
+                 }
+             }
+            }
+        } 
+
     
 
     /**
@@ -125,10 +199,7 @@ class InvoiceController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
-        //
-    }
+ 
 
     /**
      * Display the specified resource.

@@ -12,17 +12,22 @@ class Invoice extends Model
     protected $fillable = [
         'client_id',
         'appointment_id',
-        'total_amount',
-        'tax_amount',
-        'status',
+        'total',               
+        'itbis',              
+        'status_id',           
+        'payment_type_id',    
         'created_by',
         'updated_by',
+        'reference_number',    
+        'approvation_number',  
+        'is_deleted'           
     ];
 
     protected $casts = [
       
         'created_at'=> 'datetime',
         'updated_at'=> 'datetime',
+        'is_deleted' => 'boolean'
     ];
    
         public function client()
@@ -34,12 +39,17 @@ class Invoice extends Model
         {
             return $this->belongsTo(Appointment::class);
         }
-        public function InvoiceDetails()
+        public function invoiceDetails()
         {
             return $this->hasMany(InvoiceDetail::class);
         }
-    
 
+        public function paymentType()
+        {
+        return $this->belongsTo(PaymentType::class);
+        }
+    
+/*
     public static function boot()
     {
         parent::boot();
@@ -57,6 +67,6 @@ class Invoice extends Model
             // Supongamos que el usuario actual es accesible desde Auth
            $person->updated_by = auth()->user()->id;
         });
-    }
+    }*/
 }
 
