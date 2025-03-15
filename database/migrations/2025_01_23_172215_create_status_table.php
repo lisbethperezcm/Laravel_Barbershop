@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('estatus', function (Blueprint $table) {
+        Schema::create('status', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique(); // Nombre del estado (pendiente, pagado, devuelto)
         $table->timestamps(); // Campos para fecha de creación y actualización
@@ -23,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('estatus');
+        Schema::dropIfExists('status');
     }
 };

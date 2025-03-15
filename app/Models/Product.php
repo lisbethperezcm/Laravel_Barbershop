@@ -32,11 +32,11 @@ class Product extends Model
     }
 
     /**
-     * Relación con la tabla estatus
+     * Relación con la tabla status
      */
-    public function estatus()
+    public function status()
     {
-        return $this->belongsTo(Estatus::class);
+        return $this->belongsTo(Status::class);
     }
     public function invoiceDetails()
     {

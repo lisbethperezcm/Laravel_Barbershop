@@ -81,6 +81,28 @@ class AppointmentController extends Controller
     }
     
 
+
+
+    public function getAppointmentsByClient(?Client $client=null)
+{
+
+    if (!$client) {
+        $user = Auth::user();
+        
+        // Verificar si el usuario autenticado tiene un cliente asociado
+        if (!$user || !$user->person || !$user->person->client) {
+            return response()->json(['message' => 'Cliente no encontrado'], 404);
+        }
+
+        $client = $user->person->client;
+    }
+
+    $appointments = Appointment::with(['barber', 'client', 'services', 'createdBy.person'])
+                                  ->where('client_id', $client->id)
+                                ->get();
+
+    return new AppointmentCollection($appointments);
+}
     /**
      * Update the specified resource in storage.
      */

@@ -6,7 +6,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
-class EstatusSeeder extends Seeder
+class StatusSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -14,7 +14,7 @@ class EstatusSeeder extends Seeder
     public function run(): void
     {
     
-        DB::table('estatus')->insert([
+        DB::table('status')->insert([
             ['name' => 'activo'],
             ['name' => 'inactivo'],
             ['name' => 'reservado'],

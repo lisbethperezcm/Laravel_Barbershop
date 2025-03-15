@@ -28,23 +28,21 @@ class UserFactory extends Factory
     { 
 
         
-        $user = User::create([
-            
-            'email' => $this->faker->unique()->safeEmail,
-            'password' => bcrypt('password123'), // Contraseña predeterminada
-            'role_id' => Role::inRandomOrder()->first()->id, // Asignar un rol aleatorio
-        ]);
-
-        // Crear la persona asociada al usuario
-        $person = Person::factory()->create([
-            'user_id' => $user->id, // Asociar la persona al usuario
-        ]);
-        
         return [
-           
-            'email' => $this->faker->unique()->safeEmail,
-            'password' => bcrypt('password123'),
-            'role_id' => Role::inRandomOrder()->first()->id, // Asignar un rol aleatorio
+            'email' => $this->faker->unique()->safeEmail(),
+            'password' => Hash::make('password123'), // Contraseña encriptada correctamente
+            'role_id' => $this->faker->randomElement([1, 2, 3]), // Rol aleatorio
+            'updated_by' => null,
+            'created_at' => now(), // Establecer timestamp actual
+            'updated_at' => now(), // Establecer timestamp actual
         ];
+        
+    }
+
+    public function role($roleId)
+    {
+        return $this->state([
+            'role_id' => $roleId
+        ]);
     }
 }

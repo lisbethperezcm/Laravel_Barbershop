@@ -76,8 +76,8 @@ class AuthController extends Controller
 
     if (!Auth::attempt($data)) {
         return response([
-            'errors' => ['El email o el password son incorrectos']
-        ], 422);
+            'errors' => ['Credenciales incorrectas']
+        ], 401);
     }
 
     $user = Auth::user();

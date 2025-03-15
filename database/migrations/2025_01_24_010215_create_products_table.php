@@ -19,7 +19,7 @@ return new class extends Migration
             $table->decimal('unit_cost', 10, 2); // Costo por unidad
             $table->integer('stock'); // Cantidad en stock
             $table->decimal('itbis', 10, 2); // Impuesto (ITBIS) en porcentaje
-            $table->foreignId('status_id')->nullable()->constrained('estatus')->onDelete('set null');
+            $table->foreignId('status_id')->nullable()->constrained('status')->onDelete('set null');
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->boolean('is_deleted')->default(false);

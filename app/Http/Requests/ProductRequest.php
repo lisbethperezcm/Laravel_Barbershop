@@ -28,7 +28,7 @@ class ProductRequest extends FormRequest
             'unit_cost' => 'nullable|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'itbis' => 'required|numeric|min:0',
-            'status_id' => 'required|exists:estatus,id', 
+            'status_id' => 'required|exists:status,id', 
             'created_by' => 'nullable|exists:users,id'
         ];
     }
