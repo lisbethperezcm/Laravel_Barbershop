@@ -17,11 +17,11 @@ class ServiceSeeder extends Seeder
     {
        
         $defaultServices = [
-            ['name' => 'Corte de cabello', 'current_price' => 500, 'previous_price' => null, 'duration' => '01:00:00', 'updated_by' => null], // Precio en RD$
+            ['name' => 'Corte de cabello', 'current_price' => 500, 'previous_price' => null, 'duration' => '00:40:00', 'updated_by' => null], // Precio en RD$
             ['name' => 'Afeitado', 'current_price' => 350, 'previous_price' => null, 'duration' => '00:45:00', 'updated_by' => null],         // Precio en RD$
-            ['name' => 'Masaje', 'current_price' => 400, 'previous_price' => null, 'duration' => '00:30:00', 'updated_by' => null],           // Precio en RD$
-            ['name' => 'Corte de cabello y afeitado', 'current_price' => 800, 'previous_price' => null, 'duration' => '01:30:00', 'updated_by' => null], // Precio en RD$
-            ['name' => 'Masaje relajante', 'current_price' => 600, 'previous_price' => null, 'duration' => '01:00:00', 'updated_by' => null],  // Precio en RD$
+            ['name' => 'Masaje', 'current_price' => 400, 'previous_price' => null, 'duration' => '00:20:00', 'updated_by' => null],           // Precio en RD$
+            ['name' => 'Corte de cabello y afeitado', 'current_price' => 800, 'previous_price' => null, 'duration' => '00:45:00', 'updated_by' => null], // Precio en RD$
+            ['name' => 'Masaje relajante', 'current_price' => 600, 'previous_price' => null, 'duration' => '00:25:00', 'updated_by' => null],  // Precio en RD$
         ];
 
         // Inserción directa utilizando DB::table() y sin involucrar el modelo Eloquent

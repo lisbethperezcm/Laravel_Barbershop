@@ -14,7 +14,7 @@ class Appointment extends Model
         'appointment_date',
         'start_time',
         'end_time',
-        'status',
+        'status_id',
         'created_by',
         'updated_by',
     ];
@@ -46,6 +46,10 @@ class Appointment extends Model
         return $this->belongsToMany(Service::class, 'appointment_service');
     }
 
+    public function status()
+    {
+        return $this->belongsTo(Status::class);
+    }
     public function createdBy()
 {
     return $this->belongsTo(User::class, 'created_by');

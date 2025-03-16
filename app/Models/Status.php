@@ -15,4 +15,9 @@ public function products()
 {
     return $this->hasMany(Product::class);
 }
+
+public function appointments()
+{
+    return $this->hasMany(Appointment::class);
+}
 }

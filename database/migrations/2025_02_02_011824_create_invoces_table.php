@@ -20,7 +20,7 @@ return new class extends Migration
             $table->foreignId('payment_type_id')->nullable()->constrained('payment_types')->onDelete('set null');
             $table->string('reference_number',50);//Numero de referencia si el pago se hace con transferencia  
             $table->string('aprovation_number',50);//Numero de aprobacion si el pago se hace con tarjeta  
-            $table->foreignId('status_id')->nullable()->constrained('status')->onDelete('set null');
+            $table->foreignId('status_id')->nullable()->constrained('statuses')->onDelete('set null');
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null'); // Relación con el usuario que creó la factura
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null'); // Relación con el usuario que actualizó la factura         
             $table->boolean('is_deleted')->default(false);
