@@ -22,13 +22,16 @@ class Service extends Model
         'created_at'=> 'datetime',
         'updated_at'=> 'datetime',
     ];
+
     public function appointments()
     {
         return $this->belongsToMany(Appointment::class, 'appointment_service');
     }
-    
 
-
+    public function invoiceDetails()
+    {
+        return $this->hasMany(InvoiceDetail::class);
+    }
     public static function boot()
     {
         parent::boot();

@@ -14,7 +14,7 @@ class Appointment extends Model
         'appointment_date',
         'start_time',
         'end_time',
-        'status',
+        'status_id',
         'created_by',
         'updated_by',
     ];
@@ -32,7 +32,20 @@ class Appointment extends Model
     ];
 
    
+// Funcion para establecer el filtro de las citas por estatus
 
+public function scopeByStatus($query, $status_id = null)
+{
+    if (!is_null($status_id)) { // Si `status_id` no es null, aplica el filtro
+        return $query->where('status_id', $status_id);
+    }
+
+    return $query; // Si `status_id` es null, devuelve la consulta sin modificarla
+}
+
+
+
+    //Relaciones del modelo 
     public function client(){
 
         return $this->belongsTo(Client::class);
@@ -46,6 +59,10 @@ class Appointment extends Model
         return $this->belongsToMany(Service::class, 'appointment_service');
     }
 
+    public function status()
+    {
+        return $this->belongsTo(Status::class);
+    }
     public function createdBy()
 {
     return $this->belongsTo(User::class, 'created_by');

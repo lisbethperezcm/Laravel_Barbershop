@@ -4,7 +4,9 @@ namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
+use App\Models\Barber;
 use App\Models\Day;
+use App\Models\Product;
 use App\Models\Service;
 use Illuminate\Database\Seeder;
 
@@ -19,7 +21,10 @@ class DatabaseSeeder extends Seeder
         $this->call([
            RoleSeeder::class,
             DaySeeder::class,
-            ServiceSeeder::class
+            ServiceSeeder::class,
+            StatusSeeder::class,
+            BarberSeeder::class
+            //ProductSeeder::class
         ]);
         // \App\Models\User::factory(10)->create();
 

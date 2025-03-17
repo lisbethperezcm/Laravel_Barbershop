@@ -11,7 +11,9 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Requests\LoginRequest;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Auth;
+use App\Jobs\SendWelcomeNotification;
 use App\Http\Requests\RegisterRequest;
+use App\Notifications\WelcomeNotification;
 use Illuminate\Console\Scheduling\Schedule;
 
 class AuthController extends Controller
@@ -44,19 +46,25 @@ class AuthController extends Controller
         }
         
         $token = $user->createToken('access_token')->plainTextToken;
-        
+       /* 
         $verificationUrl = URL::temporarySignedRoute(
             'verification.verify', now()->addMinutes(60), ['id' => $user->id, 'hash' => sha1($user->email)]
-        );
+        );*/
 
        // $user->sendEmailVerificationNotification();
 
+    $user->notify(new WelcomeNotification());
+
+      
+        // 🔹 Enviar la notificación en segundo plano
+      //  dispatch(new SendWelcomeNotification($user));
+       
         // Retornar una respuesta de éxito
          return response()->json([
         'message' => 'Usuario registrado exitosamente, verifica tu correo',
         'access_token' => $token,
         'token_type' => 'Bearer',
-        'verification_url' => $verificationUrl,
+       // 'verification_url' => $verificationUrl,
     ], 201);
     
 });
@@ -68,8 +76,8 @@ class AuthController extends Controller
 
     if (!Auth::attempt($data)) {
         return response([
-            'errors' => ['El email o el password son incorrectos']
-        ], 422);
+            'errors' => ['Credenciales incorrectas']
+        ], 401);
     }
 
     $user = Auth::user();
@@ -82,10 +90,18 @@ class AuthController extends Controller
 
     /** @var \Illuminate\Foundation\Auth\User $user */
 $token = $user->createToken('access_token')->plainTextToken;
+   // Obtener datos del usuario y su relación con persona
+
+   $person = $user->person;
+   $role = $user->role->name;
+
 
     return [
       'access_token' => $token, // Esto retorna el token correctamente
-        'user' => $user->email,           // Y la información del usuario autenticado
+      'name' => $person->first_name . ' ' . $person->last_name,
+         'email' => $user->email,
+         'role_id'=>$user->role_id,
+         'role' => $role
     ];
 
 }

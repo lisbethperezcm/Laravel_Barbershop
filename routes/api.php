@@ -1,106 +1,79 @@
 <?php
-
-use App\Models\Client;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\BarberController;
-use App\Http\Controllers\ClientController;
-use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\BarberController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\ServiceController;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use App\Http\Controllers\ClientController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\InvoiceController;
+
 
 /*
 |--------------------------------------------------------------------------
 | API Routes
 |--------------------------------------------------------------------------
 |
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
+| Aquí se registran las rutas de la API. Se organizan por categorías para 
+| una mejor gestión y mantenimiento.
 |
 */
 
+/* 🔹 AUTENTICACIÓN */
+Route::post('/register', [AuthController::class, 'register']); // Registra un nuevo usuario
+Route::post('/login', [AuthController::class, 'login']); // Inicia sesión y devuelve un token
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+
+/* 🔹 RUTAS PROTEGIDAS (Requieren autenticación con Sanctum) */
+Route::middleware('auth:sanctum')->group(function () {
+
+
+    /* 📌 CITAS (Appointments) */
+Route::post('/appointments', [AppointmentController::class, 'store']); // Crear una nueva cita
+Route::put('/appointment/{appointment}', [AppointmentController::class, 'update']); // Actualizar una cita existente
+Route::get('/clients/appointments', [AppointmentController::class, 'getAppointmentsByClient']); // Listar citas de un cliente específico
+  
+  
+Route::post('/servicios', [ServiceController::class, 'store']);
+Route::put('/servicios/{service}', [ServiceController::class, 'update']);
+
+    /* 📌 PRODUCTOS (Products) */
+Route::post('/products', [ProductController::class, 'store']); // Crear un nuevo producto
+
 });
-//Registro de usuarios
 
-// Ruta para obtener los roles
-Route::get('roles', [RoleController::class, 'index']);
+/* 🔹 RUTAS PÚBLICAS */
 
-Route::post('/registro', [AuthController::class, 'register']);
+// 📌 **BARBEROS (Barbers)**
+Route::get('/barbers', [BarberController::class, 'index']); // Listar todos los barberos
+Route::post('/barbers/availableSlots', [ScheduleController::class, 'getAvailableSlots']); // Obtener horarios disponibles de los barberos
 
-Route::post('/login', [AuthController::class, 'login']);
-//Obtener barberos
-Route::get('/barberos', [BarberController::class, 'index']);
+// 📌 **CLIENTES (Clients)**
+Route::get('/clients', [ClientController::class, 'index']); // Listar todos los clientes
 
-//Obtener clientes
-Route::get('/clientes', [ClientController::class, 'index']);
+// 📌 **ROLES (Roles)**
+Route::get('/roles', [RoleController::class, 'index']); // Listar los roles disponibles
+Route::get('/roles/{role}', [RoleController::class, 'show']);
+Route::put('/roles/{role}', [RoleController::class, 'update']);
 
+// 📌 **CITAS (Appointments)**
+Route::get('/appointments', [AppointmentController::class, 'index']); // Listar todas las citas
+Route::get('/appointments/{appointment}', [AppointmentController::class, 'show']); // Obtener una cita por ID
+
+
+// 📌 **FACTURAS (Invoices)**
+Route::post('/invoices', [InvoiceController::class, 'store']); // Crear una factura
+
+// 📌 **PRODUCTOS (Products)**
+Route::get('/products', [ProductController::class, 'index']); // Listar todos los productos
+
+//getServiciosById
+Route::get('/servicios/{service}', [ServiceController::class, 'show']);
 //Obtener servicios
 Route::get('/servicios', [ServiceController::class, 'index']);
 
 
 
-
-Route::post('/barberos/horariosDisponibles', [ScheduleController::class, 'getAvailableSlots']);
-
-//Crear clita 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/appointments', [AppointmentController::class, 'store']);
-    Route::post('/servicios', [ServiceController::class, 'store']);
-    Route::put('/appointment/{appointment}', [AppointmentController::class, 'update']);
-    Route::put('/servicios/{service}', [ServiceController::class, 'update']);
-    
-});
-
-Route::get('/appointments', [AppointmentController::class, 'index']);
-
-
-Route::get('appointments/{appointment}', [AppointmentController::class, 'show']);
-
-
-
-Route::get('/roles/{role}', [RoleController::class, 'show']);
-Route::put('/roles/{role}', [RoleController::class, 'update']);
-
-
-Route::get('/roles/{role}', [RoleController::class, 'show']);
-Route::put('/roles/{role}', [RoleController::class, 'update']);
-
-
-//getServiciosById
-Route::get('/servicios/{service}', [ServiceController::class, 'show']);
-
-
-Route::post('/email/verification-notification', function (Request $request) {
-    $request->user()->sendEmailVerificationNotification();
-
-    return response()->json(['message' => 'Enlace de verificación enviado.'], 200);
-})->middleware(['auth:sanctum', 'throttle:6,1'])->name('verification.send');
-
-// Ruta para verificar el correo
-
-/*
-Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
-    $request->fulfill();
-
-    return response()->json(['message' => 'Correo verificado correctamente.'], 200);
-})->middleware(['signed'])->name('verification.verify');
-*/
-
-Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
-    $request->fulfill();
-
-    return response()->json(['message' => 'Correo verificado correctamente.'], 200);
-})->middleware(['auth:sanctum','signed'])->name('verification.verify');
-// Ruta para acceder a recursos protegidos
-Route::get('/protected-route', function () {
-    return response()->json(['message' => 'Bienvenido a una ruta protegida.'], 200);
-})->middleware(['auth:sanctum', 'verified']);
