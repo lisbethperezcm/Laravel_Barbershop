@@ -14,7 +14,7 @@ class StatusSeeder extends Seeder
     public function run(): void
     {
     
-        DB::table('status')->insert([
+        DB::table('statuses')->insert([
             ['name' => 'activo'],
             ['name' => 'inactivo'],
             ['name' => 'reservado'],

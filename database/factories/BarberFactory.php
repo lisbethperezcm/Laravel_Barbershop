@@ -23,10 +23,8 @@ class BarberFactory extends Factory
     {
         
             return [
-                'person_id'=> Person::factory()->withRole(2)->create()->id,/* => Person::factory()->create([
-                    'user_id' => User::factory()->role(2)->create()->id 
-                ])->id,*/
-                'status' => $this->faker->randomElement(['active', 'inactive']), // Generar estado aleatorio
+                'person_id'=> Person::factory()->withRole(2)->create()->id,
+                'status' => $this->faker->randomElement(['active', 'inactive']),
                 'created_at' => now(),
                 'updated_at' => now(),
             ];

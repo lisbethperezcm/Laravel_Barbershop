@@ -30,7 +30,7 @@ Route::middleware('auth:sanctum')->group(function () {
     /* 📌 CITAS (Appointments) */
     Route::post('/appointments', [AppointmentController::class, 'store']); // Crear una nueva cita
     Route::put('/appointment/{appointment}', [AppointmentController::class, 'update']); // Actualizar una cita existente
-    Route::get('/clients/{client}/appointments', [AppointmentController::class, 'getAppointmentsByClient']); // Listar citas de un cliente específico
+    Route::get('/clients/appointments', [AppointmentController::class, 'getAppointmentsByClient']); // Listar citas de un cliente específico
 
     /* 📌 PRODUCTOS (Products) */
     Route::post('/products', [ProductController::class, 'store']); // Crear un nuevo producto

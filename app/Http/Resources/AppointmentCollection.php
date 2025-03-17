@@ -18,12 +18,13 @@ class AppointmentCollection extends ResourceCollection
             return [
                 
                 'id' => $appointment->id,
+                'client_id'=>$appointment->client_id,
                 'client_name' => $appointment->client->person->first_name . ' ' . $appointment->client->person->last_name,
                 'barber_name' => $appointment->barber->person->first_name . ' ' . $appointment->barber->person->last_name,
-                'status' => $appointment->status,
                 'appointment_date' => $appointment->appointment_date, // fecha de la cita
                 'start_time' => $appointment->start_time, // hora de inicio
                 'end_time' => $appointment->end_time, // hora de fin
+                'status_id'=> $appointment->status_id,// Estatus de la cita
                 'created_at' => $appointment->created_at, // fecha y hora de creación
                 'created_by' => $appointment->createdBy ? $appointment->createdBy->person->first_name . ' ' .$appointment->createdBy->person->last_name  : 'desconocido', //
                 'updated_at' => $appointment->updated_at, // fecha y hora de actualización

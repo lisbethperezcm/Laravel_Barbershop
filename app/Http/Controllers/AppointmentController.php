@@ -8,6 +8,7 @@ use App\Models\Appointment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\AppointmentRequest;
+use App\Http\Requests\GetAppointmentsRequest;
 use App\Http\Resources\AppointmentCollection;
 use App\Http\Resources\AppointmentResource;
 
@@ -51,6 +52,7 @@ class AppointmentController extends Controller
          $appointment->appointment_date = $request->appointment_date;
          $appointment->start_time = Carbon::parse($request->start_time)->format('H:i:s');
          $appointment->end_time = Carbon::parse($request->end_time)->format('H:i:s');
+         $appointment->status_id = 3;
         
  
          // Guardar la cita
@@ -83,23 +85,32 @@ class AppointmentController extends Controller
 
 
 
-    public function getAppointmentsByClient(?Client $client=null)
+    public function getAppointmentsByClient(GetAppointmentsRequest $request)
 {
+        // Obtener el client_id y status_id del request (si viene)
+        $client_id = $request->input('client_id');
+        $status_id= $request->input('status_id');
 
-    if (!$client) {
+
+    if (!$client_id) {
         $user = Auth::user();
         
         // Verificar si el usuario autenticado tiene un cliente asociado
         if (!$user || !$user->person || !$user->person->client) {
             return response()->json(['message' => 'Cliente no encontrado'], 404);
+
+            $client_id = $user->person->client->id;
         }
 
-        $client = $user->person->client;
+      
     }
 
     $appointments = Appointment::with(['barber', 'client', 'services', 'createdBy.person'])
-                                  ->where('client_id', $client->id)
-                                ->get();
+                                  ->where('client_id', $client_id)
+                                  //->byStatus($status_id)
+                                  ->when($status_id, fn($query) => $query->where('status_id', $status_id))
+                                  ->get();
+                           
 
     return new AppointmentCollection($appointments);
 }

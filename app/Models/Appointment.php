@@ -32,7 +32,20 @@ class Appointment extends Model
     ];
 
    
+// Funcion para establecer el filtro de las citas por estatus
 
+public function scopeByStatus($query, $status_id = null)
+{
+    if (!is_null($status_id)) { // Si `status_id` no es null, aplica el filtro
+        return $query->where('status_id', $status_id);
+    }
+
+    return $query; // Si `status_id` es null, devuelve la consulta sin modificarla
+}
+
+
+
+    //Relaciones del modelo 
     public function client(){
 
         return $this->belongsTo(Client::class);

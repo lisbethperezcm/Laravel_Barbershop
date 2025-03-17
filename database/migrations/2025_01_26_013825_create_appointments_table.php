@@ -20,7 +20,9 @@ return new class extends Migration
             $table->date('appointment_date'); // Fecha
             $table->time('start_time');  // Hora de inicio
             $table->time('end_time');    // Hora de fin
-            $table->string('status')->default('confirmada'); // Estado de la cita
+             // Permitir valores NULL para `status_id`
+            $table->foreignId('status_id')->nullable()->constrained('statuses')->onDelete('set null');
+            
             $table->foreignId('created_by')->nullable();
             $table->foreign('created_by')->references('id')->on('users')->onDelete('set null');
             $table->foreignId('updated_by')->nullable();
@@ -40,6 +42,7 @@ return new class extends Migration
             $table->dropForeign(['barber_id']);
             $table->dropForeign(['created_by']);
             $table->dropForeign(['updated_by']);
+            $table->dropForeign(['status_id']);
 
         });  
         Schema::dropIfExists('appointments');
