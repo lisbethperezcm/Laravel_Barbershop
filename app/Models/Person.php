@@ -33,6 +33,10 @@ public function client(){
     return $this->hasOne(Client::class);
 }
 
+public function services(){
+    return $this->belongsToMany(Service::class);
+}
+
 public static function boot()
 {
     parent::boot();

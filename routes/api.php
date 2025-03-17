@@ -11,6 +11,7 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\ServiceController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
 /*
@@ -42,6 +43,9 @@ Route::get('/barberos', [BarberController::class, 'index']);
 //Obtener clientes
 Route::get('/clientes', [ClientController::class, 'index']);
 
+//Obtener servicios
+Route::get('/servicios', [ServiceController::class, 'index']);
+
 
 
 
@@ -50,7 +54,9 @@ Route::post('/barberos/horariosDisponibles', [ScheduleController::class, 'getAva
 //Crear clita 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/appointments', [AppointmentController::class, 'store']);
+    Route::post('/servicios', [ServiceController::class, 'store']);
     Route::put('/appointment/{appointment}', [AppointmentController::class, 'update']);
+    Route::put('/servicios/{service}', [ServiceController::class, 'update']);
     
 });
 
@@ -60,6 +66,17 @@ Route::get('/appointments', [AppointmentController::class, 'index']);
 Route::get('appointments/{appointment}', [AppointmentController::class, 'show']);
 
 
+
+Route::get('/roles/{role}', [RoleController::class, 'show']);
+Route::put('/roles/{role}', [RoleController::class, 'update']);
+
+
+Route::get('/roles/{role}', [RoleController::class, 'show']);
+Route::put('/roles/{role}', [RoleController::class, 'update']);
+
+
+//getServiciosById
+Route::get('/servicios/{service}', [ServiceController::class, 'show']);
 
 
 Route::post('/email/verification-notification', function (Request $request) {
