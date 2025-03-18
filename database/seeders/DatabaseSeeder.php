@@ -23,7 +23,7 @@ class DatabaseSeeder extends Seeder
            // DaySeeder::class,
             //ServiceSeeder::class,
             StatusSeeder::class,
-            BarberSeeder::class
+            //BarberSeeder::class
             //ProductSeeder::class
         ]);
         // \App\Models\User::factory(10)->create();
