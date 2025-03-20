@@ -43,6 +43,9 @@ Route::put('/servicios/{service}', [ServiceController::class, 'update']);
     /* 📌 PRODUCTOS (Products) */
 Route::post('/products', [ProductController::class, 'store']); // Crear un nuevo producto
 
+/* 📌 Cerrar sesion */
+Route::post('/logout', [AuthController::class, 'logout']);
+
 });
 
 /* 🔹 RUTAS PÚBLICAS */
