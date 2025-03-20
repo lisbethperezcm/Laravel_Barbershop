@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\LoginRequest;
 use Illuminate\Support\Facades\URL;
+use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Auth;
 use App\Jobs\SendWelcomeNotification;
 use App\Http\Requests\RegisterRequest;
@@ -61,10 +62,11 @@ class AuthController extends Controller
        
         // Retornar una respuesta de éxito
          return response()->json([
-        'message' => 'Usuario registrado exitosamente, verifica tu correo',
+        'message' => 'Usuario registrado exitosamente',
         'access_token' => $token,
         'token_type' => 'Bearer',
        // 'verification_url' => $verificationUrl,
+       'user'=> new UserResource($user)
     ], 201);
     
 });
@@ -98,12 +100,20 @@ $token = $user->createToken('access_token')->plainTextToken;
 
     return [
       'access_token' => $token, // Esto retorna el token correctamente
-      'name' => $person->first_name . ' ' . $person->last_name,
-         'email' => $user->email,
-         'role_id'=>$user->role_id,
-         'role' => $role
+      'token_type' => 'Bearer',
+      'user'=> new UserResource($user)
     ];
 
+}
+
+public function logout(Request $request)
+{
+    // Revocar el token actual del usuario
+    $request->user()->tokens()->delete();
+
+    return response()->json([
+        'message' => 'Sesión cerrada correctamente'
+    ], 200);
 }
 
 }
