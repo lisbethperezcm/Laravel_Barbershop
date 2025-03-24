@@ -8,9 +8,10 @@ use App\Models\Appointment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\AppointmentRequest;
+use App\Http\Resources\AppointmentResource;
 use App\Http\Requests\GetAppointmentsRequest;
 use App\Http\Resources\AppointmentCollection;
-use App\Http\Resources\AppointmentResource;
+use App\Notifications\AppointmentNotification;
 
 class AppointmentController extends Controller
 {
@@ -32,11 +33,12 @@ class AppointmentController extends Controller
 
         $user = auth()->user();
        if(!$user){
-            return response()->json(['error' => 'Usuario no aa autenticado.'], 401);
+            return response()->json(['error' => 'Usuario no autenticado.'], 401);
         }
        
  
         $client_id = $request->client_id ?? $user->person->client->id ?? null;
+
 
     // Verificar si el usuario tiene un cliente asociado
     if (!$client_id) {
@@ -60,11 +62,20 @@ class AppointmentController extends Controller
  
          // Asociar los servicios a la cita mediante la tabla pivote
          $appointment->services()->attach($request->services);
+
+        // $appointment = Appointment::with(['barber', 'client', 'services', 'createdBy.person'])->findOrFail($appointment->id);
+
+         
+
+      
+        $appointment->client->person->user->notify(new AppointmentNotification($appointment));
+    
  
+        $appointment = new AppointmentResource($appointment);
          // Retornar respuesta
          return response()->json([
              'message' => 'Cita creada exitosamente.',
-             'appointment' => $appointment,
+             'appointment' =>$appointment
          ], 201);
      }
     
