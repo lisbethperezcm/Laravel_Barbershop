@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuites>
-  <testsuite name="Tests\Unit\ExampleTest" file="C:\Users\Lisbeth\Desktop\laravel_barbershop\tests\Unit\ExampleTest.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.398592">
-    <testcase name="test_that_true_is_true" file="C:\Users\Lisbeth\Desktop\laravel_barbershop\tests\Unit\ExampleTest.php" line="12" class="Tests\Unit\ExampleTest" classname="Tests.Unit.ExampleTest" assertions="1" time="0.398592"/>
+  <testsuite name="Tests\Feature\AuthTest" file="C:\Users\Lisbeth\Desktop\laravel_barbershop\tests\Feature\AuthTest.php" tests="4" assertions="12" errors="0" failures="0" skipped="0" time="18.366217">
+    <testcase name="un_usuario_puede_registrarse_exitosamente" file="C:\Users\Lisbeth\Desktop\laravel_barbershop\tests\Feature\AuthTest.php" line="17" class="Tests\Feature\AuthTest" classname="Tests.Feature.AuthTest" assertions="3" time="14.760666"/>
+    <testcase name="un_usuario_puede_iniciar_sesion_correctamente" file="C:\Users\Lisbeth\Desktop\laravel_barbershop\tests\Feature\AuthTest.php" line="44" class="Tests\Feature\AuthTest" classname="Tests.Feature.AuthTest" assertions="5" time="2.732259"/>
+    <testcase name="no_se_puede_iniciar_sesion_con_credenciales_incorrectas" file="C:\Users\Lisbeth\Desktop\laravel_barbershop\tests\Feature\AuthTest.php" line="63" class="Tests\Feature\AuthTest" classname="Tests.Feature.AuthTest" assertions="1" time="0.491512"/>
+    <testcase name="no_se_puede_registrar_un_usuario_con_email_existente" file="C:\Users\Lisbeth\Desktop\laravel_barbershop\tests\Feature\AuthTest.php" line="89" class="Tests\Feature\AuthTest" classname="Tests.Feature.AuthTest" assertions="3" time="0.381781"/>
   </testsuite>
 </testsuites>
