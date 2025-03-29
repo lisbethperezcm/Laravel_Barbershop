@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('exit_details', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('exit_id')->constrained('inventory_exits')->onDelete('set null'); 
-            $table->foreignId('product_id')->constrained('products')->onDelete('set null');
+            $table->foreignId('exit_id')->nullable()->constrained('inventory_exits')->onDelete('set null'); 
+            $table->foreignId('product_id')->nullable()->constrained('products')->onDelete('set null');
             $table->integer('quantity');
             $table->decimal('unit_cost', 10, 2);
           
@@ -26,7 +26,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('invoice_details', function (Blueprint $table) {
+        Schema::table('exit_details', function (Blueprint $table) {
             $table->dropForeign(['exit_id']);
             $table->dropForeign(['product_id']);       
         });  
