@@ -79,7 +79,7 @@ class AuthController extends Controller
 
         if (!Auth::attempt($data)) {
             return response([
-                'errors' => ['Credenciales incorrectas.'],
+                'message' => 'Credenciales incorrectas.',
                 'errorCode' => '401'
             ], 401);
         }
@@ -88,9 +88,9 @@ class AuthController extends Controller
 
         if (!$user) {
             return response([
-                'errors' => ['No se pudo autenticar al usuario.'],
-                'errorCode' => '422'
-            ], 422);
+                'message' => 'No se pudo autenticar al usuario.',
+                'errorCode' => '401'
+            ], 401);
         }
 
         /** @var \Illuminate\Foundation\Auth\User $user */
