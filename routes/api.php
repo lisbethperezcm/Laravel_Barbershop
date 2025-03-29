@@ -8,6 +8,7 @@ use App\Http\Controllers\BarberController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\InventoryExitsController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\InvoiceController;
 
@@ -46,6 +47,9 @@ Route::post('/products', [ProductController::class, 'store']); // Crear un nuevo
 /* 📌 Cerrar sesion */
 Route::post('/logout', [AuthController::class, 'logout']);
 
+
+/* 📌 INVENTARIO (Inventory) */
+Route::post('/inventory-exits', [InventoryExitsController::class, 'store']);
 });
 
 /* 🔹 RUTAS PÚBLICAS */

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->decimal('current_price', 10, 2);
             $table->decimal('previous_price', 10, 2)->nullable();
-            $table->time('duration'); // Almacena la duración como HH:MM:SS
+            $table->integer('duration')->unsigned();
             $table->unsignedBigInteger('updated_by')->nullable(); 
             $table->foreign('updated_by')->references('id')->on('users')->onDelete('set null');
             $table->timestamps();

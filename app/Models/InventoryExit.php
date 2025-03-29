@@ -12,8 +12,7 @@ class InventoryExit extends Model
     protected $fillable = [
         'exit_type',
         'exit_date',
-        'note',               
-        'itbis',              
+        'note',                     
         'total',             
         'created_by',
         'updated_by'       
@@ -30,22 +29,20 @@ class InventoryExit extends Model
         return $this->hasMany(ExitDetail::class, 'exit_id');
     }
 
-  /*  public static function boot()
+    public static function boot()
     {
         parent::boot();
 
       static::creating(function ($person) {
           
           
-            // El usuario que está creando el registro
-            // Supongamos que el usuario actual es accesible desde Auth
+            // El usuario que está creando el registro es accesible desde Auth
         $person->created_by = auth()->user()->id;
      });
         
         static::updating(function ($person) {
-            // El usuario que está modificando el registro
-            // Supongamos que el usuario actual es accesible desde Auth
+            // El usuario que está modificando el registro es accesible desde Auth
            $person->updated_by = auth()->user()->id;
         });
-    }*/
+    }
 }
