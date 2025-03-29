@@ -5,51 +5,32 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Product extends Model
+class InventoryExit extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'name',
-        'description',
-        'sale_price',
-        'unit_cost',
-        'stock',
-        'itbis',
-        'status_id',
+        'exit_type',
+        'exit_date',
+        'note',               
+        'itbis',              
+        'total',             
         'created_by',
-        'updated_by',
-        'is_deleted'
+        'updated_by'       
     ];
-
-    protected $casts = [
-        'is_deleted' => 'boolean',
-    ];
-
-    public function scopeActive($query)
-    {
-        return $query->where('is_deleted', false);
-    }
-
-    /**
-     * Relación con la tabla status
-     */
-    public function status()
-    {
-        return $this->belongsTo(Status::class);
-    }
-    public function invoiceDetails()
-    {
-        return $this->hasMany(InvoiceDetail::class);
-    }
     
+    protected $casts = [
+      
+        'created_at'=> 'datetime',
+        'updated_at'=> 'datetime'
+    ];
+
     public function exitDetails()
     {
-        return $this->hasMany(ExitDetail::class);
+        return $this->hasMany(ExitDetail::class, 'exit_id');
     }
 
-
-    public static function boot()
+  /*  public static function boot()
     {
         parent::boot();
 
@@ -66,5 +47,5 @@ class Product extends Model
             // Supongamos que el usuario actual es accesible desde Auth
            $person->updated_by = auth()->user()->id;
         });
-    }
+    }*/
 }

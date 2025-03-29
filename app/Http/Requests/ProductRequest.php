@@ -25,10 +25,10 @@ class ProductRequest extends FormRequest
             'name' => 'required|string|max:100',
             'description' => 'required|string|max:500',
             'sale_price' => 'required|numeric|min:0',
-            'unit_cost' => 'nullable|numeric|min:0',
+            'unit_cost' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
             'itbis' => 'required|numeric|min:0',
-            'status_id' => 'required|exists:status,id', 
+            'status_id' => 'required|exists:statuses,id', 
             'created_by' => 'nullable|exists:users,id'
         ];
     }
