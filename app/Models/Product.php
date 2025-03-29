@@ -43,6 +43,12 @@ class Product extends Model
         return $this->hasMany(InvoiceDetail::class);
     }
     
+    public function exitDetails()
+    {
+        return $this->hasMany(ExitDetail::class);
+    }
+
+
     public static function boot()
     {
         parent::boot();

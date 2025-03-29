@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Inventory_exits extends Model
+class InventoryExit extends Model
 {
     use HasFactory;
 
@@ -25,7 +25,10 @@ class Inventory_exits extends Model
         'updated_at'=> 'datetime'
     ];
 
-
+    public function exitDetails()
+    {
+        return $this->hasMany(ExitDetail::class, 'exit_id');
+    }
 
   /*  public static function boot()
     {
