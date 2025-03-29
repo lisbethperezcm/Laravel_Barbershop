@@ -126,8 +126,6 @@ class AppointmentController extends Controller
             ], 404);
         }
 
-
-
         $appointments = Appointment::with(['barber', 'client', 'services', 'createdBy.person'])
             ->where('client_id', $client_id)
             //->byStatus($status_id)
