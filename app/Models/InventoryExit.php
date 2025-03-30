@@ -24,10 +24,18 @@ class InventoryExit extends Model
         'updated_at'=> 'datetime'
     ];
 
+     // Relación con el detalle de salida de inventario 
+
     public function exitDetails()
     {
         return $this->hasMany(ExitDetail::class, 'exit_id');
     }
+
+      // Relación con el despacho al barbero
+      public function barberDispatch()
+      {
+          return $this->hasOne(BarberDispatch::class, 'exit_id');
+      }
 
     public static function boot()
     {

@@ -1,17 +1,18 @@
 <?php
 use Illuminate\Http\Request;
+use App\Models\BarberDispatch;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\AppointmentController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\BarberController;
-use App\Http\Controllers\ScheduleController;
-use App\Http\Controllers\ServiceController;
-use App\Http\Controllers\ClientController;
-use App\Http\Controllers\InventoryExitsController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\BarberController;
+use App\Http\Controllers\ClientController;
 use App\Http\Controllers\InvoiceController;
-
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\BarberDispatchController;
+use App\Http\Controllers\InventoryExitsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -50,8 +51,12 @@ Route::post('/logout', [AuthController::class, 'logout']);
 
 /* 📌 INVENTARIO (Inventory) */
 Route::post('/inventory-exits', [InventoryExitsController::class, 'store']);
-});
 
+
+/* 📌 DESPACHOS (Dispatches) */
+Route::post('/barber-dispatch', [BarberDispatchController::class, 'store']);
+Route::put('/barber-dispatch/{dispatch}', [BarberDispatchController::class, 'update']);
+});
 /* 🔹 RUTAS PÚBLICAS */
 
 // 📌 **BARBEROS (Barbers)**
@@ -82,5 +87,7 @@ Route::get('/servicios/{service}', [ServiceController::class, 'show']);
 //Obtener servicios
 Route::get('/servicios', [ServiceController::class, 'index']);
 
-
+/* 📌 DESPACHOS (Dispatches) */
+Route::get('/barber-dispatch', [BarberDispatchController::class, 'index']);
+Route::get('/barber-dispatch/{dispatch}', [BarberDispatchController::class, 'show']);
 

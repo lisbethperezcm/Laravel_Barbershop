@@ -20,4 +20,10 @@ public function appointments()
 {
     return $this->hasMany(Appointment::class);
 }
+
+
+public function barberDispatches(){
+
+    return $this->hasMany(BarberDispatch::class);
+}
 }

@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Helpers\GeneralHelper;
 
 class InvoiceResource extends JsonResource
 {
@@ -25,9 +26,9 @@ class InvoiceResource extends JsonResource
             'quantity' => $detail->quantity,
             'price' => $detail->price,
              'itbis' =>$detail->product_id 
-                ? $this->getFloat( $detail->price * $detail->quantity * $detail->product->itbis): 0.00,
+                ? $this->GeneralHelper::getFloat( $detail->price * $detail->quantity * $detail->product->itbis): 0.00,
            
-                'subtotal' => $this->getFloat($detail->price * $detail->quantity)   
+                'subtotal' => $this->GeneralHelper::getFloat($detail->price * $detail->quantity)   
     ]),
             'itbis' => $this->itbis,
             'subtotal'=>floatval($this->total - $this->itbis),
@@ -45,10 +46,5 @@ class InvoiceResource extends JsonResource
     
      */
 
-public function getFloat($item): float
-{
-    
-    return round(floatval($item), 2);
-}
 
 }
