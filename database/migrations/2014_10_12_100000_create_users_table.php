@@ -22,6 +22,7 @@ return new class extends Migration
             $table->foreign('updated_by')->references('id')->on('users')->onDelete('set null');
             $table->rememberToken();
             $table->timestamps();
+            $table->softDeletes();
 
 
             

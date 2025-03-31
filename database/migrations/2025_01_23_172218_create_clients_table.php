@@ -16,6 +16,7 @@ return new class extends Migration
             //Relacion de la tabla clients con la table people
             $table->foreignId('person_id')->constrained('people')->onDelete('cascade');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
  

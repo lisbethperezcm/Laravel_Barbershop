@@ -45,9 +45,7 @@ class AppointmentController extends Controller
             ], 401);
         }
 
-
         $client_id = $request->client_id ?? $user->person->client->id ?? null;
-
 
         // Verificar si el usuario tiene un cliente asociado
         if (!$client_id) {
@@ -55,7 +53,7 @@ class AppointmentController extends Controller
                 'message' => 'Cliente no encontrado.',
                 'errorCode' => '404'
             ], 404);
-        } 
+        }
 
         // Crear la cita
         $appointment = new Appointment();
@@ -73,6 +71,7 @@ class AppointmentController extends Controller
         // Asociar los servicios a la cita mediante la tabla pivote
         $appointment->services()->attach($request->services);
 
+        //Enviar confirmacion de la cita por correo
         $appointment->client->person->user->notify(new AppointmentNotification($appointment));
 
 
@@ -176,6 +175,12 @@ class AppointmentController extends Controller
      */
     public function destroy(Appointment $appointment)
     {
-        //
+
+        $appointment->delete(); // Aplicar Soft Delete a la cita
+
+        return response()->json([
+            'message' => 'Cita eliminada correctamente',
+            'errorCode' => 200
+        ]);
     }
 }

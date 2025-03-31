@@ -13,8 +13,12 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $products = Product::active()->get();
-        return response()->json($products);
+        $products = Product::all();
+
+        return response()->json([
+            'data' => $products,
+            'errorCode' => '200'
+        ], 200);
     }
 
 
@@ -23,9 +27,16 @@ class ProductController extends Controller
      */
     public function store(ProductRequest $request)
     {
-       // $product = new Product();
+       
         $product = Product::create($request->all());
-        return response()->json($product, 201);
+
+        return response()->json([
+            'message' => 'Producto creado exitosamente.',
+            'data' => $product,
+            'errorCode' => '201'
+        ], 201);
+
+      
     }
 
     /**
@@ -57,6 +68,11 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
-        //
+        $product->delete(); // Soft Delete: solo marca deleted_at
+
+        return response()->json([
+            'message' => 'Producto eliminado correctamente',
+            'errorCode' => 200
+        ]);
     }
 }

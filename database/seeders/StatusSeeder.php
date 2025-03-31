@@ -16,17 +16,17 @@ class StatusSeeder extends Seeder
     {
     
         DB::table('statuses')->insert([
-            ['name' => 'activo','created_at' => Carbon::now()],
-            ['name' => 'inactivo','created_at' => Carbon::now()],
-            ['name' => 'reservado','created_at' => Carbon::now()],
-            ['name' => 'pendiente','created_at' => Carbon::now()],
-            ['name' => 'en proceso','created_at' => Carbon::now()],
-            ['name' => 'cancelado','created_at' => Carbon::now()],
-            ['name' => 'completado','created_at' => Carbon::now()],
-            ['name' => 'pagado','created_at' => Carbon::now()],
-            ['name' => 'entregado','created_at' => Carbon::now()],
-            ['name' => 'devuelto','created_at' => Carbon::now()],
-            ['name' => 'descontinuado','created_at' => Carbon::now()]
+            ['name' => 'Activo','created_at' => Carbon::now()],
+            ['name' => 'Inactivo','created_at' => Carbon::now()],
+            ['name' => 'Reservado','created_at' => Carbon::now()],
+            ['name' => 'Pendiente','created_at' => Carbon::now()],
+            ['name' => 'En proceso','created_at' => Carbon::now()],
+            ['name' => 'Cancelado','created_at' => Carbon::now()],
+            ['name' => 'Completado','created_at' => Carbon::now()],
+            ['name' => 'Pagado','created_at' => Carbon::now()],
+            ['name' => 'Entregado','created_at' => Carbon::now()],
+            ['name' => 'Devuelto','created_at' => Carbon::now()],
+            ['name' => 'Descontinuado','created_at' => Carbon::now()]
         ]);
     }
 }

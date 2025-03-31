@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('appointment_id')->constrained()->onDelete('cascade'); // Relación con la tabla appointments
             $table->foreignId('service_id')->constrained()->onDelete('cascade'); // Relación con la tabla services
-          
         });
     }
 

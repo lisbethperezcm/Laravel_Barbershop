@@ -2,15 +2,27 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class InvoiceDetail extends Model
 {
-    protected $fillable = ['invoice_id',
-     'service_id', 'product_id','quantity', 'price'];
+    use SoftDeletes;
+    
+    protected $fillable = [
+        'invoice_id',
+        'service_id',
+        'product_id',
+        'quantity',
+        'price'
+    ];
 
-    public $timestamps = false;          
+    protected $casts = [
+        'deleted_at' => 'datetime',
+    ];
+
+    public $timestamps = false;
     public function invoice()
     {
         return $this->belongsTo(Invoice::class);
@@ -25,4 +37,3 @@ class InvoiceDetail extends Model
         return $this->belongsTo(Product::class);
     }
 }
-

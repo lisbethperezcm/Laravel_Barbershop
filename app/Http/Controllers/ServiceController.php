@@ -15,30 +15,35 @@ class ServiceController extends Controller
      */
     public function index()
     {
-        $services = Service::all(); // Obtiene todos los roles de la base de datos
-        return response()->json($services); // Devuelve los roles en formato JSON
+        $services = Service::all(); // Obtiene todos los servicios de la base de datos
+
+        return response()->json([
+            'data' => $services,
+            'errorCode' => '200'
+        ], 200);
     }
-
-
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store( ServiceRequest $request)
+    public function store(ServiceRequest $request)
     {
-
 
         $service = new Service([
             'name'           => $request->name,
             'current_price'  => $request->current_price,
             'previous_price' => $request->previous_price,
             'duration'       => $request->duration,
-           
+
         ]);
 
         $service->save();
 
-        return response()->json($service, 201);
+        return response()->json([
+            'message' => 'Servicio creado exitosamente.',
+            'data' => $service,
+            'errorCode' => '201'
+        ], 201);
     }
 
     /**
@@ -47,11 +52,10 @@ class ServiceController extends Controller
     public function show(Service $service)
     {
         return response()->json([
-            'success' => true,
-            'data' => $service
-        ]);
+            'data' => $service,
+            'errorCode' => '200'
+        ], 200);
     }
-
 
 
     /**
@@ -66,15 +70,15 @@ class ServiceController extends Controller
 
         $validatedData = $request->all();
 
-        // Actualizar la cita con los datos recibidos
+        // Actualizar el servicio con los datos recibidos
         $service->update($validatedData);
 
 
         // Respuesta en formato JSON
         return response()->json([
-            'success' => true,
-            'message' => 'Servicio updated successfully',
-            'data' => $service
+            'message' => 'Servicio actualizado con éxito',
+            'data' => $service,
+             'errorCode' => '200'
         ]);
     }
 
@@ -83,6 +87,11 @@ class ServiceController extends Controller
      */
     public function destroy(Service $service)
     {
-        //
+        $service->delete(); // Soft Delete: solo marca deleted_at
+
+        return response()->json([
+            'message' => 'Servicio eliminado correctamente',
+            'errorCode' => 200
+        ]);
     }
 }
