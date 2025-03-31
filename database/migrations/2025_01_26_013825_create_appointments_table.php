@@ -28,6 +28,7 @@ return new class extends Migration
             $table->foreignId('updated_by')->nullable();
             $table->foreign('updated_by')->references('id')->on('users')->onDelete('set null');
             $table->timestamps(); // Campos created_at y updated_at
+            $table->softDeletes();
             
         });
     }

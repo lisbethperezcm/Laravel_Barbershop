@@ -65,6 +65,18 @@ class BarberController extends Controller
      */
     public function destroy(Barber $barber)
     {
-        //
+       
+        if ($barber->person) {
+            $barber->person->delete(); // Soft Delete de la persona
+        }
+        if ($barber->person->user) {
+            $barber->person->user->delete(); // Soft Delete del usuario
+        }
+        $barber->delete(); // Soft Delete: solo marca deleted_at
+
+        return response()->json([
+            'message' => 'Barbero eliminado correctamente',
+            'errorCode' => 200
+        ]);
     }
 }

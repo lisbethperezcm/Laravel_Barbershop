@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Appointment extends Model
 {
-    use HasFactory;
+    use SoftDeletes, HasFactory;
     protected $fillable = [
         'client_id',
         'barber_id',
@@ -26,7 +27,7 @@ class Appointment extends Model
      */
 
     protected $casts = [
-
+        'deleted_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -75,8 +76,6 @@ class Appointment extends Model
         parent::boot();
 
         static::creating(function ($person) {
-
-
             // El usuario que está creando el registro
             // Supongamos que el usuario actual es accesible desde Auth
             $person->created_by = auth()->user()->id;
@@ -87,5 +86,8 @@ class Appointment extends Model
             // Supongamos que el usuario actual es accesible desde Auth
             $person->updated_by = auth()->user()->id;
         });
+
+        
     }
+   
 }

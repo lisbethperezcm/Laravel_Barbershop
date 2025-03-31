@@ -23,8 +23,8 @@ return new class extends Migration
             $table->foreignId('status_id')->nullable()->constrained('statuses')->onDelete('set null');
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null'); // Relación con el usuario que creó la factura
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null'); // Relación con el usuario que actualizó la factura         
-            $table->boolean('is_deleted')->default(false);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

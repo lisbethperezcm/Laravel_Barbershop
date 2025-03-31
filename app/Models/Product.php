@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Product extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -19,17 +20,17 @@ class Product extends Model
         'status_id',
         'created_by',
         'updated_by',
-        'is_deleted'
+
     ];
 
     protected $casts = [
-        'is_deleted' => 'boolean',
+        'deleted_at' => 'datetime',
     ];
 
-    public function scopeActive($query)
+    /* public function scopeActive($query)
     {
         return $query->where('is_deleted', false);
-    }
+    }*/
 
     /**
      * Relación con la tabla status
@@ -42,7 +43,7 @@ class Product extends Model
     {
         return $this->hasMany(InvoiceDetail::class);
     }
-    
+
     public function exitDetails()
     {
         return $this->hasMany(ExitDetail::class);
@@ -53,18 +54,18 @@ class Product extends Model
     {
         parent::boot();
 
-      static::creating(function ($person) {
-          
-          
+        static::creating(function ($person) {
+
+
             // El usuario que está creando el registro
             // Supongamos que el usuario actual es accesible desde Auth
-        $person->created_by = auth()->user()->id;
-     });
-        
+            $person->created_by = auth()->user()->id;
+        });
+
         static::updating(function ($person) {
             // El usuario que está modificando el registro
             // Supongamos que el usuario actual es accesible desde Auth
-           $person->updated_by = auth()->user()->id;
+            $person->updated_by = auth()->user()->id;
         });
     }
 }

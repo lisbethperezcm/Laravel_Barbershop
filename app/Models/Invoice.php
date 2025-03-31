@@ -2,54 +2,55 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Invoice extends Model
 {
-    use HasFactory;
-    
+    use SoftDeletes, HasFactory;
+
     protected $fillable = [
         'client_id',
         'appointment_id',
-        'total',               
-        'itbis',              
-        'status_id',           
-        'payment_type_id',    
+        'total',
+        'itbis',
+        'status_id',
+        'payment_type_id',
         'created_by',
         'updated_by',
-        'reference_number',    
-        'approvation_number',  
-        'is_deleted'           
+        'reference_number',
+        'approvation_number',
+
     ];
 
     protected $casts = [
-      
-        'created_at'=> 'datetime',
-        'updated_at'=> 'datetime',
-        'is_deleted' => 'boolean'
-    ];
-   
-        public function client()
-        {
-            return $this->belongsTo(Client::class);
-        }
-    
-        public function appointment()
-        {
-            return $this->belongsTo(Appointment::class);
-        }
-        public function invoiceDetails()
-        {
-            return $this->hasMany(InvoiceDetail::class);
-        }
 
-        public function paymentType()
-        {
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
+    ];
+
+    public function client()
+    {
+        return $this->belongsTo(Client::class);
+    }
+
+    public function appointment()
+    {
+        return $this->belongsTo(Appointment::class);
+    }
+    public function invoiceDetails()
+    {
+        return $this->hasMany(InvoiceDetail::class);
+    }
+
+    public function paymentType()
+    {
         return $this->belongsTo(PaymentType::class);
-        }
-    
-/*
+    }
+
+    /*
     public static function boot()
     {
         parent::boot();
@@ -69,4 +70,3 @@ class Invoice extends Model
         });
     }*/
 }
-

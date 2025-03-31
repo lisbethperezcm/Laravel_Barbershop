@@ -61,6 +61,20 @@ class ClientController extends Controller
      */
     public function destroy(Client $client)
     {
-        //
+        
+        if ($client->person) {
+            $client->person->delete(); // Soft Delete de la persona
+        }
+        if ($client->person->user) {
+            $client->person->user->delete(); // Soft Delete del usuario
+        }
+        $client->delete(); // Soft Delete: solo marca deleted_at
+
+        return response()->json([
+            'message' => 'Cliente eliminado correctamente',
+            'errorCode' => 200
+        ]);
     }
+
+    
 }

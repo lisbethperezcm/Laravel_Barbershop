@@ -19,6 +19,7 @@ return new class extends Migration
             $table->foreignId('product_id')->nullable()->constrained('products')->onDelete('set null'); // Relación con el producto
             $table->integer('quantity')->default(1);
             $table->decimal('price', 10, 2);
+            $table->softDeletes();
            
         });
     }
