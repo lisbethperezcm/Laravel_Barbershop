@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use App\Models\Client;
+use App\Models\Status;
 use App\Models\Appointment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -166,8 +167,43 @@ class AppointmentController extends Controller
             'errorCode' => '200'
         ], 200);
     }
+    /**
+     * Actualizar el status de la cita
+     */
 
+    public function updateStatus(Request $request, Appointment $appointment)
+    {
+        $request->validate([
+            'status' => 'required|exists:statuses,name',
+        ]);
 
+        $newStatusId = Status::where('name', $request->status)->value('id');
+
+        // 🔹 Validar si la cita ya está en un estado que no se puede cambiar
+        if ($appointment->status->name === 'Completado') {
+            return response()->json([
+                'message' => 'No puedes cambiar el estado de una cita que ya está completada.'
+            ], 400);
+        }
+
+        if ($appointment->status->name === 'Cancelado' && $request->status !== 'Cancelado') {
+            return response()->json([
+                'message' => 'No puedes modificar una cita que ha sido cancelada.'
+            ], 400);
+        }
+
+        $appointment->update([
+            'status_id' => $newStatusId,
+        ]);
+
+        // 🔹 Recargar los datos con `fresh()`
+        $appointment = $appointment->fresh();
+
+        return response()->json([
+            'message' => "Cita marcada como {$appointment->status->name}.",
+            'appointment' => new AppointmentResource($appointment)
+        ], 200);
+    }
 
 
     /**
