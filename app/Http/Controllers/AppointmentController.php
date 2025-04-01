@@ -109,12 +109,14 @@ class AppointmentController extends Controller
     {
 
 
-        $user = auth()->user();
+        //$user = auth()->user();
 
         // Obtener el status_id del request (si viene)
         $status_id = $request->input('status_id');
 
-        $client_id = $request->client_id ?? $user->person->client->id ?? null;
+        $client_id = $request->client_id;
+        
+        //?? $user->person->client->id ?? null;
 
 
         // Verificar si el usuario autenticado tiene un cliente asociado

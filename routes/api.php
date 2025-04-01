@@ -33,7 +33,7 @@ Route::post('/appointments', [AppointmentController::class, 'store']); // Crear 
 Route::put('/appointments/{appointment}', [AppointmentController::class, 'update']); // Actualizar una cita existente
 Route::put('appointments/{appointment}/status', [AppointmentController::class, 'updateStatus']); //Actualizar estatus de la cita
 Route::delete('/appointments/{appointment}', [AppointmentController::class, 'destroy']); // Eliminar una cita
-Route::get('/clients/appointments', [AppointmentController::class, 'getAppointmentsByClient']); // Listar citas de un cliente específico
+
   
   
 Route::post('/servicios', [ServiceController::class, 'store']);
@@ -86,6 +86,7 @@ Route::put('/roles/{role}', [RoleController::class, 'update']);
 // 📌 **CITAS (Appointments)**
 Route::get('/appointments', [AppointmentController::class, 'index']); // Listar todas las citas
 Route::get('/appointments/{appointment}', [AppointmentController::class, 'show']); // Obtener una cita por ID
+Route::get('/clients/appointments', [AppointmentController::class, 'getAppointmentsByClient']); // Listar citas de un cliente específico
 
 // 📌 **PRODUCTOS (Products)**
 Route::get('/products', [ProductController::class, 'index']); // Listar todos los productos
