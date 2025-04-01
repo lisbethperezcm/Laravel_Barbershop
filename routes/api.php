@@ -51,6 +51,8 @@ Route::post('/logout', [AuthController::class, 'logout']);
 /* 📌 INVENTARIO (Inventory) */
 Route::post('/inventory-exits', [InventoryExitsController::class, 'store']);
 
+// 📌 **FACTURAS (Invoices)**
+Route::post('/invoices', [InvoiceController::class, 'store']); // Crear una factura
 
 /* 📌 DESPACHOS (Dispatches) */
 Route::post('/barber-dispatch', [BarberDispatchController::class, 'store']);
@@ -83,10 +85,6 @@ Route::put('/roles/{role}', [RoleController::class, 'update']);
 // 📌 **CITAS (Appointments)**
 Route::get('/appointments', [AppointmentController::class, 'index']); // Listar todas las citas
 Route::get('/appointments/{appointment}', [AppointmentController::class, 'show']); // Obtener una cita por ID
-
-
-// 📌 **FACTURAS (Invoices)**
-Route::post('/invoices', [InvoiceController::class, 'store']); // Crear una factura
 
 // 📌 **PRODUCTOS (Products)**
 Route::get('/products', [ProductController::class, 'index']); // Listar todos los productos

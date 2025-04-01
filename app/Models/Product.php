@@ -27,6 +27,17 @@ class Product extends Model
         'deleted_at' => 'datetime',
     ];
 
+
+
+      /**
+     * Accesor para calcular el ITBIS automáticamente.
+     */
+    public function getCalculatedItbisAttribute(): float
+    {
+        return round($this->sale_price * ($this->itbis / 100), 2);
+    }
+
+
     /* public function scopeActive($query)
     {
         return $query->where('is_deleted', false);
