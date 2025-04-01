@@ -20,12 +20,12 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
 
-           // RoleSeeder::class,
-           // DaySeeder::class,
-            //ServiceSeeder::class,
-            //StatusSeeder::class,
-           //BarberSeeder::class,
-           // ProductSeeder::class
+         //   RoleSeeder::class,
+          //  DaySeeder::class,
+          //  ServiceSeeder::class,
+          //  StatusSeeder::class,
+           // BarberSeeder::class,
+            //ProductSeeder::class
         ]);
         // \App\Models\User::factory(10)->create();
 
