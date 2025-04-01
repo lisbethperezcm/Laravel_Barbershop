@@ -25,7 +25,11 @@ class DatabaseSeeder extends Seeder
           //  ServiceSeeder::class,
           //  StatusSeeder::class,
            // BarberSeeder::class,
-            //ProductSeeder::class
+            //ProductSeeder::class,
+           // RoleSeeder::class,
+           // DaySeeder::class, 
+         
+
         ]);
         // \App\Models\User::factory(10)->create();
 
