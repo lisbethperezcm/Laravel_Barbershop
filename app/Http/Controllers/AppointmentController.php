@@ -199,6 +199,16 @@ class AppointmentController extends Controller
         // 🔹 Recargar los datos con `fresh()`
         $appointment = $appointment->fresh();
 
+        // Si la cita fue marcada como "Completado" y aún NO tiene factura se genera
+        if ($appointment->status->name === 'Completado' && !$appointment->invoice) {
+
+            $requestInvoice = new Request([
+                'appointment_id' => $appointment->id,
+                'status_id' => 8, // Estado inicial de la factura
+            ]);
+        }
+        // Llamar al método store del InvoiceController
+        app(InvoiceController::class)->store($requestInvoice);
         return response()->json([
             'message' => "Cita marcada como {$appointment->status->name}.",
             'appointment' => new AppointmentResource($appointment)

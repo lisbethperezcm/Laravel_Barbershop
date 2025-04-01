@@ -70,6 +70,7 @@ class InvoiceController extends Controller
         $invoice = Invoice::create([
             'appointment_id' => $appointment?->id,
             'client_id' => $client_id,
+            'barber_id' => $appointment?->barber_id, // Asigna el barbero si hay cita
             'total' => $servicesSubtotal + $productsSubtotal + $taxAmount,
             'itbis' => $taxAmount,
             'status_id' => $request->status_id,

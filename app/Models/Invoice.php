@@ -12,6 +12,7 @@ class Invoice extends Model
 
     protected $fillable = [
         'client_id',
+        'barber_id',
         'appointment_id',
         'total',
         'itbis',
@@ -35,7 +36,10 @@ class Invoice extends Model
     {
         return $this->belongsTo(Client::class);
     }
-
+    public function barber()
+    {
+        return $this->belongsTo(Barber::class);
+    }
     public function appointment()
     {
         return $this->belongsTo(Appointment::class);
