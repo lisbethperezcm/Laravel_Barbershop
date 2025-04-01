@@ -1,10 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuites>
-  <testsuite name="Tests\Feature\AppointmentTest" file="C:\Users\Lisbeth\Desktop\laravel_barbershop\tests\Feature\AppointmentTest.php" tests="5" assertions="43" errors="0" failures="0" skipped="0" time="3.981046">
-    <testcase name="un_cliente_puede_reservar_una_cita" file="C:\Users\Lisbeth\Desktop\laravel_barbershop\tests\Feature\AppointmentTest.php" line="22" class="Tests\Feature\AppointmentTest" classname="Tests.Feature.AppointmentTest" assertions="3" time="3.408847"/>
-    <testcase name="it_fails_to_create_an_appointment_without_required_fields" file="C:\Users\Lisbeth\Desktop\laravel_barbershop\tests\Feature\AppointmentTest.php" line="62" class="Tests\Feature\AppointmentTest" classname="Tests.Feature.AppointmentTest" assertions="7" time="0.204413"/>
-    <testcase name="it_fails_when_end_time_is_before_or_equal_to_start_time" file="C:\Users\Lisbeth\Desktop\laravel_barbershop\tests\Feature\AppointmentTest.php" line="85" class="Tests\Feature\AppointmentTest" classname="Tests.Feature.AppointmentTest" assertions="3" time="0.057395"/>
-    <testcase name="obtener_citas_by_client_and_status" file="C:\Users\Lisbeth\Desktop\laravel_barbershop\tests\Feature\AppointmentTest.php" line="108" class="Tests\Feature\AppointmentTest" classname="Tests.Feature.AppointmentTest" assertions="14" time="0.171350"/>
-    <testcase name="obtener_citas_by_client" file="C:\Users\Lisbeth\Desktop\laravel_barbershop\tests\Feature\AppointmentTest.php" line="155" class="Tests\Feature\AppointmentTest" classname="Tests.Feature.AppointmentTest" assertions="16" time="0.139041"/>
+  <testsuite name="" tests="11" assertions="55" errors="0" failures="0" skipped="0" time="3.694913">
+    <testsuite name="Unit" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.473038">
+      <testsuite name="Tests\Unit\ExampleTest" file="C:\Users\Lisbeth\Desktop\laravel_barbershop\tests\Unit\ExampleTest.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.473038">
+        <testcase name="test_that_true_is_true" file="C:\Users\Lisbeth\Desktop\laravel_barbershop\tests\Unit\ExampleTest.php" line="12" class="Tests\Unit\ExampleTest" classname="Tests.Unit.ExampleTest" assertions="1" time="0.473038"/>
+      </testsuite>
+    </testsuite>
+    <testsuite name="Feature" tests="10" assertions="54" errors="0" failures="0" skipped="0" time="3.221875">
+      <testsuite name="Tests\Feature\AppointmentTest" file="C:\Users\Lisbeth\Desktop\laravel_barbershop\tests\Feature\AppointmentTest.php" tests="5" assertions="41" errors="0" failures="0" skipped="0" time="1.638418">
+        <testcase name="un_cliente_puede_reservar_una_cita" file="C:\Users\Lisbeth\Desktop\laravel_barbershop\tests\Feature\AppointmentTest.php" line="22" class="Tests\Feature\AppointmentTest" classname="Tests.Feature.AppointmentTest" assertions="3" time="1.201180"/>
+        <testcase name="it_fails_to_create_an_appointment_without_required_fields" file="C:\Users\Lisbeth\Desktop\laravel_barbershop\tests\Feature\AppointmentTest.php" line="62" class="Tests\Feature\AppointmentTest" classname="Tests.Feature.AppointmentTest" assertions="7" time="0.143882"/>
+        <testcase name="it_fails_when_end_time_is_before_or_equal_to_start_time" file="C:\Users\Lisbeth\Desktop\laravel_barbershop\tests\Feature\AppointmentTest.php" line="85" class="Tests\Feature\AppointmentTest" classname="Tests.Feature.AppointmentTest" assertions="3" time="0.044944"/>
+        <testcase name="obtener_citas_by_client_and_status" file="C:\Users\Lisbeth\Desktop\laravel_barbershop\tests\Feature\AppointmentTest.php" line="108" class="Tests\Feature\AppointmentTest" classname="Tests.Feature.AppointmentTest" assertions="12" time="0.136541"/>
+        <testcase name="obtener_citas_by_client" file="C:\Users\Lisbeth\Desktop\laravel_barbershop\tests\Feature\AppointmentTest.php" line="155" class="Tests\Feature\AppointmentTest" classname="Tests.Feature.AppointmentTest" assertions="16" time="0.111870"/>
+      </testsuite>
+      <testsuite name="Tests\Feature\AuthTest" file="C:\Users\Lisbeth\Desktop\laravel_barbershop\tests\Feature\AuthTest.php" tests="4" assertions="12" errors="0" failures="0" skipped="0" time="1.213423">
+        <testcase name="un_usuario_puede_registrarse_exitosamente" file="C:\Users\Lisbeth\Desktop\laravel_barbershop\tests\Feature\AuthTest.php" line="17" class="Tests\Feature\AuthTest" classname="Tests.Feature.AuthTest" assertions="3" time="0.947598"/>
+        <testcase name="un_usuario_puede_iniciar_sesion_correctamente" file="C:\Users\Lisbeth\Desktop\laravel_barbershop\tests\Feature\AuthTest.php" line="44" class="Tests\Feature\AuthTest" classname="Tests.Feature.AuthTest" assertions="5" time="0.036581"/>
+        <testcase name="no_se_puede_iniciar_sesion_con_credenciales_incorrectas" file="C:\Users\Lisbeth\Desktop\laravel_barbershop\tests\Feature\AuthTest.php" line="63" class="Tests\Feature\AuthTest" classname="Tests.Feature.AuthTest" assertions="1" time="0.219088"/>
+        <testcase name="no_se_puede_registrar_un_usuario_con_email_existente" file="C:\Users\Lisbeth\Desktop\laravel_barbershop\tests\Feature\AuthTest.php" line="89" class="Tests\Feature\AuthTest" classname="Tests.Feature.AuthTest" assertions="3" time="0.010156"/>
+      </testsuite>
+      <testsuite name="Tests\Feature\ExampleTest" file="C:\Users\Lisbeth\Desktop\laravel_barbershop\tests\Feature\ExampleTest.php" tests="1" assertions="1" errors="0" failures="0" skipped="0" time="0.370033">
+        <testcase name="test_the_application_returns_a_successful_response" file="C:\Users\Lisbeth\Desktop\laravel_barbershop\tests\Feature\ExampleTest.php" line="13" class="Tests\Feature\ExampleTest" classname="Tests.Feature.ExampleTest" assertions="1" time="0.370033"/>
+      </testsuite>
+    </testsuite>
   </testsuite>
 </testsuites>

@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\BarberDispatchResource;
 use App\Models\Barber;
 use Illuminate\Http\Request;
-use App\Models\BarberDispatch;
 use App\Models\InventoryExit;
+use App\Models\BarberDispatch;
 use App\Services\InventoryExitService;
+use App\Http\Resources\BarberDispatchResource;
+use App\Http\Resources\BarberDispatchCollection;
 
 class BarberDispatchController extends Controller
 {
@@ -20,8 +21,14 @@ class BarberDispatchController extends Controller
 
     public function index()
     {
-        $dispatches = BarberDispatch::all();
-        return response()->json($dispatches);
+        $dispatches = BarberDispatch::with('barber')->get();
+
+
+          //Retornar el listado de despachos formateada con AppointmentCollection
+          return response()->json([
+            'data' => new  BarberDispatchCollection($dispatches),
+            'errorCode' => '200'
+        ], 200);
     }
 
     /**
