@@ -97,4 +97,4 @@ Route::get('/servicios', [ServiceController::class, 'index']);//Obtener servicio
 /* 📌 DESPACHOS (Dispatches) */
 Route::get('/barber-dispatch', [BarberDispatchController::class, 'index']);
 Route::get('/barber-dispatch/{dispatch}', [BarberDispatchController::class, 'show']);
-
+Route::post('/barbers/report', [BarberController::class, 'calculateReport']);
