@@ -71,6 +71,7 @@ Route::post('/login', [AuthController::class, 'login']); // Inicia sesión y dev
 
 // 📌 **BARBEROS (Barbers)**
 Route::get('/barbers', [BarberController::class, 'index']); // Listar todos los barberos
+Route::get('/barbers/{barber}', [BarberController::class, 'show']); // Obtener un barbero por ID
 Route::delete('/barbers/{barber}', [BarberController::class, 'destroy']); // Eliminar un barbero
 Route::post('/barbers/availableSlots', [ScheduleController::class, 'getAvailableSlots']); // Obtener horarios disponibles de los barberos
 

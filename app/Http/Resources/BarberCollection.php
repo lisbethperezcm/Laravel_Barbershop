@@ -23,6 +23,7 @@ class BarberCollection extends ResourceCollection
                 'email' => $barber->person->user->email,
                 'role_id' => $barber->person->user->role_id,
                 'status' => $barber->status,
+                'commission' =>$barber->commission->current_percentage ?? "Desconocido",
                 'created_at' => $barber->created_at,
                 'updated_at' => $barber->updated_at,
             ];

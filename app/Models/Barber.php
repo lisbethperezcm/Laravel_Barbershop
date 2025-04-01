@@ -32,10 +32,15 @@ class Barber extends Model
 
         return $this->hasMany(Appointment::class, 'appointment_service');
     }
+    public function commission()
+{
+    return $this->hasOne(BarberCommission::class,'barber_id');
+}
 
     public function barberDispatches()
     {
 
         return $this->hasMany(BarberDispatch::class);
     }
+
 }
