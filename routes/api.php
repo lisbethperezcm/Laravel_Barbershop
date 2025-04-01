@@ -31,6 +31,7 @@ Route::middleware('auth:sanctum')->group(function () {
     /* 📌 CITAS (Appointments) */
 Route::post('/appointments', [AppointmentController::class, 'store']); // Crear una nueva cita
 Route::put('/appointments/{appointment}', [AppointmentController::class, 'update']); // Actualizar una cita existente
+Route::put('appointments/{appointment}/status', [AppointmentController::class, 'updateStatus']); //Actualizar estatus de la cita
 Route::delete('/appointments/{appointment}', [AppointmentController::class, 'destroy']); // Eliminar una cita
 Route::get('/clients/appointments', [AppointmentController::class, 'getAppointmentsByClient']); // Listar citas de un cliente específico
   
@@ -50,6 +51,8 @@ Route::post('/logout', [AuthController::class, 'logout']);
 /* 📌 INVENTARIO (Inventory) */
 Route::post('/inventory-exits', [InventoryExitsController::class, 'store']);
 
+// 📌 **FACTURAS (Invoices)**
+Route::post('/invoices', [InvoiceController::class, 'store']); // Crear una factura
 
 /* 📌 DESPACHOS (Dispatches) */
 Route::post('/barber-dispatch', [BarberDispatchController::class, 'store']);
@@ -68,6 +71,7 @@ Route::post('/login', [AuthController::class, 'login']); // Inicia sesión y dev
 
 // 📌 **BARBEROS (Barbers)**
 Route::get('/barbers', [BarberController::class, 'index']); // Listar todos los barberos
+Route::get('/barbers/{barber}', [BarberController::class, 'show']); // Obtener un barbero por ID
 Route::delete('/barbers/{barber}', [BarberController::class, 'destroy']); // Eliminar un barbero
 Route::post('/barbers/availableSlots', [ScheduleController::class, 'getAvailableSlots']); // Obtener horarios disponibles de los barberos
 
@@ -82,10 +86,6 @@ Route::put('/roles/{role}', [RoleController::class, 'update']);
 // 📌 **CITAS (Appointments)**
 Route::get('/appointments', [AppointmentController::class, 'index']); // Listar todas las citas
 Route::get('/appointments/{appointment}', [AppointmentController::class, 'show']); // Obtener una cita por ID
-
-
-// 📌 **FACTURAS (Invoices)**
-Route::post('/invoices', [InvoiceController::class, 'store']); // Crear una factura
 
 // 📌 **PRODUCTOS (Products)**
 Route::get('/products', [ProductController::class, 'index']); // Listar todos los productos

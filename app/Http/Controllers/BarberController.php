@@ -7,7 +7,9 @@ use App\Models\Barber;
 use App\Models\Person;
 use App\Models\Schedule;
 use Illuminate\Http\Request;
+use App\Models\BarberCommission;
 use App\Http\Resources\BarberCollection;
+use App\Http\Resources\BarberResource;
 
 class BarberController extends Controller
 {
@@ -16,7 +18,7 @@ class BarberController extends Controller
      */
     public function index()
     {
-        $barbers = Barber::with(['person.user'])->get();
+        $barbers = Barber::with(['person.user', 'commission'])->get();
 
         //colección de barberos
         return new BarberCollection($barbers);
@@ -32,6 +34,7 @@ class BarberController extends Controller
         $barber = new Barber();
         $person->barber()->save($barber);
 
+          // Crea horarios por defecto
         $defaultSchedules = [
             ['barber_id' => $barber->id, 'day_id' => 1, 'start_time' => '09:00:00', 'end_time' => '17:00:00', 'status' => 'active'], // Lunes
             ['barber_id' => $barber->id, 'day_id' => 2, 'start_time' => '09:00:00', 'end_time' => '17:00:00', 'status' => 'active'], // Martes
@@ -43,14 +46,26 @@ class BarberController extends Controller
         foreach ($defaultSchedules as $schedule) {
             Schedule::create($schedule);
         }
-    }
 
+        // Validar si el request tiene "commission" y crear el registro en BarberCommission
+        if ($request->filled('commission')) {
+            BarberCommission::create([
+                'barber_id' => $barber->id,
+                'current_percentage' => intval($request->commission), // Convertirlo en entero
+            ]);
+        }
+    }
     /**
      * Display the specified resource.
      */
     public function show(Barber $barber)
     {
-        //
+      
+       //Retornar la cita encontrada formateada con AppointmentResource
+       return response()->json([
+           'data' => new  BarberResource($barber),
+           'errorCode' => '200'
+       ], 200);
     }
     /**
      * Update the specified resource in storage.
@@ -65,7 +80,7 @@ class BarberController extends Controller
      */
     public function destroy(Barber $barber)
     {
-       
+
         if ($barber->person) {
             $barber->person->delete(); // Soft Delete de la persona
         }

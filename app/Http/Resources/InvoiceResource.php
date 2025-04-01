@@ -19,32 +19,30 @@ class InvoiceResource extends JsonResource
         return [
             'id' => $this->id,
             'appointment_id' => $this->appointment_id,
+            'status' => $this->status->name,
             'client_name' => $this->client->person->first_name . ' ' . $this->client->person->last_name,
             'details' => $this->invoiceDetails->map(fn($detail) => [
-            'type' => $detail->service_id ? 'service' : 'product',
-            'name' => $detail->service_id ? $detail->service->name : $detail->product->name,
-            'quantity' => $detail->quantity,
-            'price' => $detail->price,
-             'itbis' =>$detail->product_id 
-                ? $this->GeneralHelper::getFloat( $detail->price * $detail->quantity * $detail->product->itbis): 0.00,
-           
-                'subtotal' => $this->GeneralHelper::getFloat($detail->price * $detail->quantity)   
-    ]),
+                'type' => $detail->service_id ? 'service' : 'product',
+                'name' => $detail->service_id ? $detail->service->name : $detail->product->name,
+                'quantity' => $detail->quantity,
+                'price' => $detail->price,
+                'itbis' => $detail->product_id
+                    ? $detail->product->calculated_itbis * $detail->quantity : 0.00,
+                'subtotal' => GeneralHelper::getFloat($detail->price * $detail->quantity)
+            ]),
             'itbis' => $this->itbis,
-            'subtotal'=>floatval($this->total - $this->itbis),
-            'total' => $this->total,
-           
+            'subtotal' => GeneralHelper::getFloat($this->total - $this->itbis),
+            'total' => GeneralHelper::getFloat($this->total),
+
             'created_at' => $this->created_at,
-          
+
         ];
     }
 
-     /**
+    /**
      * Transform the resource into an array.
      *
      * @return float
     
      */
-
-
 }

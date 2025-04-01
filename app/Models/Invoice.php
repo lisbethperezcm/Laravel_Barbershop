@@ -20,7 +20,7 @@ class Invoice extends Model
         'created_by',
         'updated_by',
         'reference_number',
-        'approvation_number',
+        'approvation_number'
 
     ];
 
@@ -49,8 +49,11 @@ class Invoice extends Model
     {
         return $this->belongsTo(PaymentType::class);
     }
-
-    /*
+    public function status()
+    {
+        return $this->belongsTo(Status::class);
+    }
+    
     public static function boot()
     {
         parent::boot();
@@ -58,15 +61,13 @@ class Invoice extends Model
       static::creating(function ($person) {
           
           
-            // El usuario que está creando el registro
-            // Supongamos que el usuario actual es accesible desde Auth
+            // El usuario que está creando el registro es accesible desde Auth
         $person->created_by = auth()->user()->id;
      });
         
         static::updating(function ($person) {
-            // El usuario que está modificando el registro
-            // Supongamos que el usuario actual es accesible desde Auth
+            // El usuario que está modificando el registro es accesible desde Auth
            $person->updated_by = auth()->user()->id;
         });
-    }*/
+    }
 }
