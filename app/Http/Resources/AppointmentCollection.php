@@ -24,7 +24,7 @@ class AppointmentCollection extends ResourceCollection
                 'appointment_date' => $appointment->appointment_date, // fecha de la cita
                 'start_time' => $appointment->start_time, // hora de inicio
                 'end_time' => $appointment->end_time, // hora de fin
-                'status_id'=> $appointment->status_id,// Estatus de la cita
+                'status'=> $appointment->status->name,// Estatus de la cita
                 'created_at' => $appointment->created_at, // fecha y hora de creación
                 'created_by' => $appointment->createdBy ? $appointment->createdBy->person->first_name . ' ' .$appointment->createdBy->person->last_name  : 'desconocido', //
                 'updated_at' => $appointment->updated_at, // fecha y hora de actualización
