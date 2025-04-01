@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('appointment_id')->nullable()->constrained('appointments')->onDelete('set null');
             $table->foreignId('client_id')->constrained('clients')->onDelete('cascade');
+            $table->foreignId('barber_id')->nullable()->constrained('barbers')->onDelete('set null');
             $table->decimal('total', 10, 2);
             $table->decimal('itbis', 10, 2);
             $table->foreignId('payment_type_id')->nullable()->constrained('payment_types')->onDelete('set null');
@@ -36,6 +37,7 @@ return new class extends Migration
         Schema::table('invoices', function (Blueprint $table) {
             $table->dropForeign(['appointment_id']);
             $table->dropForeign(['client_id']);
+            $table->dropForeign(['barber_id']);
             $table->dropForeign(['created_by']);
             $table->dropForeign(['updated_by']);
             $table->dropForeign(['status_id']);

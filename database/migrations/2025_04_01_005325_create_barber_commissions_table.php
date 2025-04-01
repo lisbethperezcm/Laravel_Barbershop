@@ -28,7 +28,7 @@ return new class extends Migration
     {
      
 
-        Schema::table('bbarber_commissions', function (Blueprint $table) {
+        Schema::table('barber_commissions', function (Blueprint $table) {
             $table->dropForeign(['barber_id']);         
         });  
 
