@@ -23,8 +23,11 @@ class BarberController extends Controller
     {
         $barbers = Barber::with(['person.user', 'commission'])->get();
 
-        //colección de barberos
-        return new BarberCollection($barbers);
+          //colección de barberos
+           return response()->json([
+            'data' => new   BarberCollection($barbers),
+            'errorCode' => '200'
+        ], 200);
     }
 
 
@@ -64,7 +67,7 @@ class BarberController extends Controller
     public function show(Barber $barber)
     {
 
-        //Retornar la cita encontrada formateada con AppointmentResource
+        //Retornar el barbero formateado 
         return response()->json([
             'data' => new  BarberResource($barber),
             'errorCode' => '200'
@@ -138,7 +141,7 @@ class BarberController extends Controller
 
 
 
-        return new BarberReportResource((object) [
+        $barberReport = new BarberReportResource((object) [
             'barber_name' => $barber->person->first_name . ' ' . $barber->person->last_name,
             'total_services' => $totalServices,
             'commission_percentage' => $commissionRate * 100,
@@ -150,6 +153,10 @@ class BarberController extends Controller
             'dispatches' => $dispatches
         ]);
         
-       
+        //Retornar el reporte generado
+        return response()->json([
+            'data' => $barberReport,
+            'errorCode' => '200'
+        ], 200);
     }
 }

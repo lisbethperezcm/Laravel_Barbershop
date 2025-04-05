@@ -24,8 +24,8 @@ class BarberDispatchController extends Controller
         $dispatches = BarberDispatch::with('barber')->get();
 
 
-          //Retornar el listado de despachos formateada con AppointmentCollection
-          return response()->json([
+        //Retornar el listado de despachos formateada con AppointmentCollection
+        return response()->json([
             'data' => new  BarberDispatchCollection($dispatches),
             'errorCode' => '200'
         ], 200);
@@ -49,6 +49,22 @@ class BarberDispatchController extends Controller
             'products.*.product_id' => 'required|exists:products,id',
             'products.*.quantity' => 'required|integer|min:1',
         ]);
+
+
+        // 👇 Calcular total del despacho con el método del servicio
+        $totalToDispatch = $this->inventoryExitService->calculateTotal($request->products);
+
+        $barber = Barber::findOrFail($request->barber_id);
+        // 👇 Obtener ingreso neto del barbero en el mes
+        $netIncome =$barber->getCurrentMonthNetIncome();
+
+        // Validar
+        if ($totalToDispatch > $netIncome) {
+            return response()->json([
+                'message' => 'El monto a despachar excede el ingreso neto del barbero en este mes.',
+                'errorCode' => 422
+            ], 422);
+        }
 
         // Crear la salida de inventario usando el `Service`
         $inventoryExit = $this->inventoryExitService->createInventoryExit([
@@ -81,7 +97,7 @@ class BarberDispatchController extends Controller
     public function show(BarberDispatch $dispatch)
     {
         //Consultar el despacho uniendo las relaciones de los otros modelos
-         $dispatch = BarberDispatch::with(['barber'])->findOrFail($dispatch->id);
+        $dispatch = BarberDispatch::with(['barber'])->findOrFail($dispatch->id);
 
         //Retornar el despacho 
         return response()->json([
@@ -106,7 +122,7 @@ class BarberDispatchController extends Controller
         // Obtener el modelo InventoryExit lanza automáticamente un 404 si no existe
         $exit = InventoryExit::findOrFail($dispatch->exit_id);
 
-        
+
         $validatedData = $request->all();
 
         // Actualizar la cita con los datos recibidos
@@ -115,7 +131,7 @@ class BarberDispatchController extends Controller
 
         // Llamar al servicio para actualizar los productos de la salida
         $updatedExit =  $this->inventoryExitService->updateInventoryExit($exit, (array) $validatedData);
- 
+
         // Devolver la registro actualizado
         return response()->json([
             'message' => 'Despacho actualizado con éxito.',

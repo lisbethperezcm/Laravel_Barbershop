@@ -29,10 +29,9 @@ class ScheduleController extends Controller
             ->first();
 
         if (!$schedule) {
-
-              //Retornar el arreglo vacio
+            //Retornar el arreglo vacio
             return response()->json([
-                'data' => [],
+                'message' => 'El barbero seleccionado no trabaja en este dia',
                 'errorCode' => '200'
             ], 200);
         }
