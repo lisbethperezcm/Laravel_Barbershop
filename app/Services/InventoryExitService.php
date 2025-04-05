@@ -152,7 +152,7 @@ class InventoryExitService
     /**
      * Calcular el total de los productos
      */
-    protected function calculateTotal(array $products): float
+    public function calculateTotal(array $products): float
     {
         $productsModel = Product::whereIn('id', collect($products)->pluck('product_id'))->get()->keyBy('id');
 

@@ -102,26 +102,17 @@ class AppointmentController extends Controller
         ], 200);
     }
 
-
-
-
-    public function getAppointmentsByClient(GetAppointmentsRequest $request)
-    {
-
-
+    public function getAppointmentsByClient(GetAppointmentsRequest $request){
+    
         //$user = auth()->user();
-
         // Obtener el status_id del request (si viene)
         $status_id = $request->input('status_id');
-
         $client_id = $request->client_id;
         
         //?? $user->person->client->id ?? null;
 
-
         // Verificar si el usuario autenticado tiene un cliente asociado
         if (!$client_id) {
-
             return response([
                 'message' => 'Cliente no encontrado.',
                 'errorCode' => '404'
@@ -211,9 +202,11 @@ class AppointmentController extends Controller
         }
         // Llamar al método store del InvoiceController
         app(InvoiceController::class)->store($requestInvoice);
+
         return response()->json([
             'message' => "Cita marcada como {$appointment->status->name}.",
-            'appointment' => new AppointmentResource($appointment)
+            'appointment' => new AppointmentResource($appointment),
+            'errorCode' => '200'
         ], 200);
     }
 

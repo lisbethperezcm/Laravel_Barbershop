@@ -6,9 +6,9 @@ use Log;
 use Carbon\Carbon;
 use App\Models\Schedule;
 use App\Models\Appointment;
-use Illuminate\Validation\Validator;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
-
+use Illuminate\Http\Exceptions\HttpResponseException;
 class AppointmentRequest extends FormRequest
 {
     /**
@@ -51,6 +51,27 @@ class AppointmentRequest extends FormRequest
     }
 
 
+    public function messages(): array
+    {
+        return [
+            'client_id.exists' => 'El cliente seleccionado no existe.',
+
+            'barber_id.required' => 'El barbero es obligatorio.',
+            'barber_id.exists' => 'El barbero seleccionado no existe.',
+
+            'appointment_date.required' => 'La fecha de la cita es obligatoria.',
+            'appointment_date.date_format' => 'La fecha de la cita debe tener el formato YYYY-MM-DD.',
+
+            'start_time.required' => 'La hora de inicio es obligatoria.',
+            'start_time.date_format' => 'La hora de inicio debe tener el formato HH:MM:SS.',
+
+            'end_time.required' => 'La hora de fin es obligatoria.',
+            'end_time.date_format' => 'La hora de fin debe tener el formato HH:MM:SS.',
+
+            'services.required' => 'Debes seleccionar al menos un servicio.',
+        ];
+    }
+
     //Validaciones para la cita
 
     public function withValidator(Validator $validator)
@@ -63,19 +84,19 @@ class AppointmentRequest extends FormRequest
             }
 
             $barberId = $this->barber_id;
-            $appointmentDate =Carbon::parse($this->appointment_date);
-            $start_time =Carbon::parse( $this->start_time);
+            $appointmentDate = Carbon::parse($this->appointment_date);
+            $start_time = Carbon::parse($this->start_time);
             $end_time = Carbon::parse($this->end_time);
 
             // Obtener horario del barbero
-            $dayOfWeek =$appointmentDate->dayOfWeek;
+            $dayOfWeek = $appointmentDate->dayOfWeek;
             $schedule = Schedule::where('barber_id', $barberId)
-            ->where('day_id', $dayOfWeek)
-            ->first();
-          
+                ->where('day_id', $dayOfWeek)
+                ->first();
+
             if ($schedule) {
-                $workStart =Carbon::parse($schedule->start_time);
-                $workEnd =Carbon::parse($schedule->end_time);
+                $workStart = Carbon::parse($schedule->start_time);
+                $workEnd = Carbon::parse($schedule->end_time);
 
                 // Validar que la cita esté dentro del horario del barbero
                 if ($start_time->lt($workStart) || $end_time->gt($workEnd)) {
@@ -88,7 +109,7 @@ class AppointmentRequest extends FormRequest
                 return;
             }
 
-            
+
             $exists = Appointment::where('barber_id', $barberId)
                 ->where('appointment_date', $appointmentDate)
                 ->where(function ($query) use ($start_time, $end_time) {
@@ -109,4 +130,29 @@ class AppointmentRequest extends FormRequest
             }
         });
     }
+
+   
+    protected function failedValidation(Validator $validator)
+    {
+        $requiredFields = ['barber_id', 'appointment_date', 'start_time', 'end_time', 'services'];
+    
+        $failed = $validator->failed(); // Ej: ['barber_id' => ['Required' => []], ...]
+    
+        // Verificar si alguno de los campos requeridos falló por "Required"
+        $hasRequiredError = collect($requiredFields)->contains(function ($field) use ($failed) {
+            return isset($failed[$field]['Required']);
+        });
+    
+        if ($hasRequiredError) {
+            throw new HttpResponseException(response()->json([
+                'message' => 'Revisar faltan campos requeridos.',
+                'errors' => $validator->errors(),
+                'errorCode' => 422
+            ], 422));
+        }
+    
+        // De lo contrario, se usa la validación por defecto
+        parent::failedValidation($validator);
+    }
+    
 }
