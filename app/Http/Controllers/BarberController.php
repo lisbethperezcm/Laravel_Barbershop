@@ -107,11 +107,45 @@ class BarberController extends Controller
             'barber_id' => 'required|exists:barbers,id',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
+            'filtro' => 'nullable|in:mes,semana,quincena',
         ]);
-
+        $today = now();
         $barber = Barber::findOrFail($request->barber_id);
         $commissionRate = $barber->commission->current_percentage ?? 0;
         $commissionRate = $commissionRate / 100;
+
+
+
+         // Si no se envían fechas, usamos el filtro
+    if (!$request->filled('fecha_inicio') || !$request->filled('fecha_fin')) {
+        switch ($request->filtro) {
+            case 'mes':
+                $request->merge([
+                    'fecha_inicio' => $today->copy()->startOfMonth()->toDateString(),
+                    'fecha_fin' => $today->copy()->endOfMonth()->toDateString()
+                ]);
+                break;
+            case 'semana':
+                $request->merge([
+                    'fecha_inicio' => $today->copy()->startOfWeek()->toDateString(),
+                    'fecha_fin' => $today->copy()->endOfWeek()->toDateString()
+                ]);
+                break;
+            case 'quincena':
+                if ($today->day <= 15) {
+                    $request->merge([
+                        'fecha_inicio' => $today->copy()->startOfMonth()->toDateString(),
+                        'fecha_fin' => $today->copy()->startOfMonth()->addDays(14)->toDateString()
+                    ]);
+                } else {
+                    $request->merge([
+                        'fecha_inicio' => $today->copy()->startOfMonth()->addDays(15)->toDateString(),
+                        'fecha_fin' => $today->copy()->endOfMonth()->toDateString()
+                    ]);
+                }
+                break;
+        }
+    }
 
         // Obtener el total de servicios (filtrado con helper)
         $invoices = $barber->invoices()
@@ -146,12 +180,15 @@ class BarberController extends Controller
             'total_services' => $totalServices,
             'commission_percentage' => $commissionRate * 100,
             'total_commission' => $totalCommission,
-            'net_income' =>$netIncome, 
-            'total_dispatches' =>$totalDispatches,
+            'net_income' => $netIncome, 
+            'total_dispatches' => $totalDispatches,
             'final_balance' => $finalBalance,
             'invoices' => $invoices,
-            'dispatches' => $dispatches
+            'dispatches' => $dispatches,
+            'fecha_inicio' => $request->fecha_inicio,
+            'fecha_fin' => $request->fecha_fin,
         ]);
+        
         
         //Retornar el reporte generado
         return response()->json([

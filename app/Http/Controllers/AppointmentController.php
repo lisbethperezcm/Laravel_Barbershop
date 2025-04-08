@@ -64,6 +64,7 @@ class AppointmentController extends Controller
         // Verificar si el cliente ya tiene otra cita en el mismo horario
         $clientConflict = Appointment::where('client_id', $client_id)
             ->where('appointment_date', $appointmentDate)
+            ->where('status_id', '!=', 6)
             ->where(function ($query) use ($start_time, $end_time) {
                 $query->where(function ($q) use ($start_time, $end_time) {
                     $q->where('start_time', '<', $end_time)
