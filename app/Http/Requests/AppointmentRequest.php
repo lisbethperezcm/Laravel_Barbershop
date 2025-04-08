@@ -84,11 +84,10 @@ class AppointmentRequest extends FormRequest
             }
 
             $barberId = $this->barber_id;
-            
             $appointmentDate = Carbon::parse($this->appointment_date);
             $start_time = Carbon::parse($this->start_time);
             $end_time = Carbon::parse($this->end_time);
-            $clientId = $this->client_id;
+
             // Obtener horario del barbero
             $dayOfWeek = $appointmentDate->dayOfWeek;
             $schedule = Schedule::where('barber_id', $barberId)
@@ -129,24 +128,6 @@ class AppointmentRequest extends FormRequest
             if ($exists) {
                 $validator->errors()->add('start_time', 'El barbero ya tiene una cita en este horario.');
             }
-
-              // Validar que el cliente no tenga otra cita en el mismo horario, incluso con otro barbero
-              $clientHasConflict = Appointment::where('client_id', $clientId)
-              ->where('appointment_date', $appointmentDate)
-              ->where(function ($query) use ($start_time, $end_time) {
-                  $query->where(function ($q) use ($start_time, $end_time) {
-                      $q->where('start_time', '<', $end_time)
-                          ->where('end_time', '>', $start_time);
-                  })->orWhere(function ($q) use ($start_time, $end_time) {
-                      $q->where('start_time', '>=', $start_time)
-                          ->where('end_time', '<=', $end_time);
-                  });
-              })
-              ->exists();
-  
-          if ($clientHasConflict) {
-              $validator->errors()->add('client_id', 'El cliente ya tiene una cita programada en este horario con otro barbero.');
-          }
         });
     }
 
