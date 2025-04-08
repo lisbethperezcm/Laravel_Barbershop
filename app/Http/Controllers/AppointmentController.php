@@ -37,6 +37,7 @@ class AppointmentController extends Controller
      */
     public function store(AppointmentRequest $request)
     {
+
         //Obtener el usuario autenticado 
         $user = auth()->user();
         if (!$user) {
@@ -56,6 +57,30 @@ class AppointmentController extends Controller
             ], 404);
         }
 
+        $appointmentDate =$request->appointment_date;
+        $start_time = Carbon::parse($request->start_time)->format('H:i:s');
+        $end_time = Carbon::parse($request->end_time)->format('H:i:s');
+
+        // Verificar si el cliente ya tiene otra cita en el mismo horario
+        $clientConflict = Appointment::where('client_id', $client_id)
+            ->where('appointment_date', $appointmentDate)
+            ->where(function ($query) use ($start_time, $end_time) {
+                $query->where(function ($q) use ($start_time, $end_time) {
+                    $q->where('start_time', '<', $end_time)
+                        ->where('end_time', '>', $start_time);
+                })->orWhere(function ($q) use ($start_time, $end_time) {
+                    $q->where('start_time', '>=', $start_time)
+                        ->where('end_time', '<=', $end_time);
+                });
+            })
+            ->exists();
+
+        if ($clientConflict) {
+            return response()->json([
+                'message' => 'El cliente ya tiene una cita programada en este horario con otro barbero.',
+                 'errorCode' => '422'
+            ], 422);
+        }
         // Crear la cita
         $appointment = new Appointment();
         $appointment->client_id = $client_id;
@@ -102,13 +127,14 @@ class AppointmentController extends Controller
         ], 200);
     }
 
-    public function getAppointmentsByClient(GetAppointmentsRequest $request){
-    
+    public function getAppointmentsByClient(GetAppointmentsRequest $request)
+    {
+
         //$user = auth()->user();
         // Obtener el status_id del request (si viene)
         $status_id = $request->input('status_id');
         $client_id = $request->client_id;
-        
+
         //?? $user->person->client->id ?? null;
 
         // Verificar si el usuario autenticado tiene un cliente asociado
