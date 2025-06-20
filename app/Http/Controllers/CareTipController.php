@@ -30,9 +30,7 @@ class CareTipController extends Controller
         'services.*' => 'exists:services,id',
     ]);
 
-    $careTips = CareTip::whereIn('service_id', $validated['services'])
-        ->with('service')
-        ->get();
+    $careTips = CareTip::getByServiceIds($validated['services']);
 
     return response()->json([
         'data' => $careTips,

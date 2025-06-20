@@ -14,6 +14,7 @@ use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Auth;
 use App\Jobs\SendWelcomeNotification;
 use App\Http\Requests\RegisterRequest;
+use App\Http\Resources\CareTipCollection;
 use App\Notifications\WelcomeNotification;
 use Illuminate\Console\Scheduling\Schedule;
 
@@ -101,14 +102,29 @@ class AuthController extends Controller
         $person = $user->person;
         $role = $user->role->name;
 
+        // Obtener care tips recomendados según los últimos 3 servicios del cliente
+        $careTips = [];
+        if ($role === 'Cliente') {
+            $client = $user->person->client;
+            if ($client) {
+                $lastServices = $client->lastThreeServices();
 
-        return [
-            'access_token' => $token, // Esto retorna el token correctamente
-            'token_type' => 'Bearer',
-            'user' => new UserResource($user),
-            'errorCode' => '200'
-        ];
-    }
+                if (!empty($lastServices)) {
+
+                    $careTips = \App\Models\CareTip::getTipsByServices($lastServices);
+                }
+            }
+        }
+
+            return [
+                'access_token' => $token, // Esto retorna el token correctamente
+                'token_type' => 'Bearer',
+                'user' => new UserResource($user),
+                'care_tips' => new CareTipCollection($careTips),
+                'errorCode' => '200'
+            ];
+        }
+    
 
     public function logout(Request $request)
     {

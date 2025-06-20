@@ -10,13 +10,20 @@ class CareTip extends Model
 {
     use HasFactory, SoftDeletes;
 
-     protected $fillable = [
+    protected $fillable = [
         'service_id',
         'name',
         'description',
         'created_by',
         'updated_by',
     ];
+
+    public static function getTipsByServices(array $serviceIds)
+    {
+        return self::whereIn('service_id', $serviceIds)
+            ->with('service')
+            ->get();
+    }
 
     public function service()
     {
