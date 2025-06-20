@@ -81,25 +81,6 @@ class BarberController extends Controller
         //
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Barber $barber)
-    {
-
-        if ($barber->person) {
-            $barber->person->delete(); // Soft Delete de la persona
-        }
-        if ($barber->person->user) {
-            $barber->person->user->delete(); // Soft Delete del usuario
-        }
-        $barber->delete(); // Soft Delete: solo marca deleted_at
-
-        return response()->json([
-            'message' => 'Barbero eliminado correctamente',
-            'errorCode' => 200
-        ]);
-    }
 
     public function calculateReport(Request $request)
     {
@@ -195,5 +176,25 @@ class BarberController extends Controller
             'data' => $barberReport,
             'errorCode' => '200'
         ], 200);
+    }
+
+      /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Barber $barber)
+    {
+
+        if ($barber->person) {
+            $barber->person->delete(); // Soft Delete de la persona
+        }
+        if ($barber->person->user) {
+            $barber->person->user->delete(); // Soft Delete del usuario
+        }
+        $barber->delete(); // Soft Delete: solo marca deleted_at
+
+        return response()->json([
+            'message' => 'Barbero eliminado correctamente',
+            'errorCode' => 200
+        ]);
     }
 }

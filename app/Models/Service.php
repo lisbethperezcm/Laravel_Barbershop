@@ -11,17 +11,17 @@ class Service extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'name', 
+        'name',
         'current_price',
-        'previous_price', 
+        'previous_price',
         'duration',
         'updated_by'
     ];
 
     protected $casts = [
-        
-        'created_at'=> 'datetime',
-        'updated_at'=> 'datetime',
+
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
     ];
 
@@ -34,16 +34,19 @@ class Service extends Model
     {
         return $this->hasMany(InvoiceDetail::class);
     }
+
+    public function careTips()
+    {
+        return $this->hasMany(CareTip::class);
+    }
     public static function boot()
     {
         parent::boot();
-    
+
         static::updating(function ($person) {
             // El usuario que está modificando el registro
             // Supongamos que el usuario actual es accesible desde Auth
             $person->updated_by = auth()->user()->id;
         });
     }
-    
-
 }

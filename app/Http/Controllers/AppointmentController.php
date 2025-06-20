@@ -163,6 +163,8 @@ class AppointmentController extends Controller
      * Update the specified resource in storage.
      */
 
+
+     /**PENDIENTE IMPLEMENTACION DEL AppointmentRequest */
     public function update(Request $request, Appointment $appointment)
     {
         // Obtener los datos de la solicitud sin validación

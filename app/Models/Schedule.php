@@ -9,6 +9,10 @@ class Schedule extends Model
 {
     use HasFactory;
 
+    //PENDIENTE REFACTORIZAR STATUSID
+    // 1 = activo, 2 = inactivo
+    protected $table = 'schedules';
+
     protected $fillable = [
         'barber_id', 
         'day_id', 
