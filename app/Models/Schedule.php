@@ -9,12 +9,16 @@ class Schedule extends Model
 {
     use HasFactory;
 
+    //PENDIENTE REFACTORIZAR STATUSID
+    // 1 = activo, 2 = inactivo
+    protected $table = 'schedules';
+
     protected $fillable = [
         'barber_id', 
         'day_id', 
         'start_time', 
         'end_time', 
-        'status',
+        'status_id',
     ];
 
 
@@ -26,6 +30,11 @@ class Schedule extends Model
     public function day()
     {
         return $this->belongsTo(Day::class); 
+    }
+
+      public function status()
+    {
+        return $this->belongsTo(Status::class);
     }
 
     public static function boot()

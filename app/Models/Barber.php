@@ -12,6 +12,11 @@ class Barber extends Model
 {
     use SoftDeletes, HasFactory;
 
+    // PENDIENTE REFACTORIZAR STATUSID 
+    // 1 = activo, 2 = inactivo
+
+    protected $table = 'barbers';
+
     protected $fillable = [
         'person_id', // Relación con la tabla Persona
         'status', // 'active' o 'inactive'

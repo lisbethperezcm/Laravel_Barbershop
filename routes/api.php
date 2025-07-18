@@ -6,6 +6,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\BarberController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\CareTipController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ServiceController;
@@ -51,13 +53,19 @@ Route::post('/logout', [AuthController::class, 'logout']);
 /* 📌 INVENTARIO (Inventory) */
 Route::post('/inventory-exits', [InventoryExitsController::class, 'store']);
 
-// 📌 **FACTURAS (Invoices)**
+// 📌 **FACTURAS (Invoices)*/
 Route::post('/invoices', [InvoiceController::class, 'store']); // Crear una factura
 
 /* 📌 DESPACHOS (Dispatches) */
 Route::post('/barber-dispatch', [BarberDispatchController::class, 'store']);
 Route::put('/barber-dispatch/{dispatch}', [BarberDispatchController::class, 'update']);
+
+/* 📌 TIPS DE CUIDADO (Care Tips) */
+Route::post('/care-tips', [CareTipController::class, 'store']); // Crear un tip
+Route::put('/care-tips/{careTip}', [CareTipController::class, 'update']); // Actualizar un tip
+Route::delete('/care-tips/{careTip}', [CareTipController::class, 'destroy']); // Eliminar un tip
 });
+
 
 
 /* 🔹 RUTAS PÚBLICAS */
@@ -99,3 +107,12 @@ Route::get('/servicios', [ServiceController::class, 'index']);//Obtener servicio
 Route::get('/barber-dispatch', [BarberDispatchController::class, 'index']);
 Route::get('/barber-dispatch/{dispatch}', [BarberDispatchController::class, 'show']);
 Route::post('/barbers/report', [BarberController::class, 'calculateReport']);
+
+
+// 📌 TIPS DE CUIDADO (Care Tips)
+Route::get('/care-tips', [CareTipController::class, 'index']); // Listar todos los tips
+Route::get('/care-tips/{careTip}', [CareTipController::class, 'show']); // Mostrar un tip específico
+Route::post('/care-tips/by-services', [CareTipController::class, 'getTipsByServices']); // Obtener tips por servicios
+
+// 📌 REPORTES (Reports)
+Route::get('reports/daily-summary', [ReportController::class, 'dailySummary']);

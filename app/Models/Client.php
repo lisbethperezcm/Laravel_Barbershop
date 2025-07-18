@@ -10,12 +10,36 @@ class Client extends Model
 {
     use SoftDeletes, HasFactory;
     protected $fillable = [
-        'person_id', // Relación con la tabla Persona
+        'person_id', // Relationship with the Person table
     ];
     protected $casts = [
         'deleted_at' => 'datetime',
     ];
 
+    /**
+     * Get the last three services used by the client.
+     *
+     * This method retrieves the last three completed appointments of the client,
+     * and then collects all unique services from those appointments.
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function lastThreeServices()
+    {
+       
+        $appointments = $this->appointments()
+            ->where('status_id', 7) // Completed appointments
+            ->orderBy('appointment_date', 'desc')
+            ->take(3)
+            ->with('services')
+            ->get();
+
+       
+         // Return only the IDs of the services
+    return $appointments->flatMap(function ($appointment) {
+        return $appointment->services->pluck('id');
+    })->unique()->values()->toArray();
+}
     public function person()
     {
 

@@ -17,6 +17,8 @@ class BarberReportResource extends JsonResource
     public function toArray(Request $request)
     {
         return [
+            'fecha_inicio' => $this->fecha_inicio,
+            'fecha_fin' => $this->fecha_fin,
             'barber_name' => $this->barber_name,
             'total_services' => GeneralHelper::getFloat($this->total_services),
             'commission_percentage' => GeneralHelper::getFloat($this->commission_percentage),
@@ -25,27 +27,32 @@ class BarberReportResource extends JsonResource
             'total_dispatches' => GeneralHelper::getFloat($this->total_dispatches),
             'final_balance' => GeneralHelper::getFloat($this->final_balance),
 
-            'invoices' => $this->invoices->map(fn($invoice) => [
-                'invoice_id' => $invoice->id,
-                'date' => Carbon::parse($invoice->created_at)->format('d/m/Y'),
-                'client_name' => $invoice->client->person->first_name. ' ' . $invoice->client->person->last_name,
-                'total' => GeneralHelper::getFloat($invoice->total),
-                'itbis' => GeneralHelper::getFloat($invoice->itbis),
-                'status' => $invoice->status->name
-            ]),
-
-            'dispatches' => $this->dispatches->map(fn($dispatch) => [
-                'dispatch_id' => $dispatch->id,
-                'date' => Carbon::parse($dispatch->dispatch_date)->format('d/m/Y'),
-                'products' => $dispatch->inventoryExit->exitDetails->map(fn($detail) => [
-                    'product' => $detail->product->name,
-                    'quantity' => $detail->quantity,
-                    'unit_cost' => GeneralHelper::getFloat($detail->unit_cost),
-                    'sub_total' => GeneralHelper::getFloat($detail->quantity * $detail->unit_cost),
+            'invoices' => $this->invoices->isEmpty()
+                ? [['message' => 'No se registraron facturas en este periodo.']]
+                : $this->invoices->map(fn($invoice) => [
+                    'invoice_id' => $invoice->id,
+                    'date' => Carbon::parse($invoice->created_at)->format('d/m/Y'),
+                    'client_name' => $invoice->client->person->first_name . ' ' . $invoice->client->person->last_name,
+                    'total' => GeneralHelper::getFloat($invoice->total),
+                    'itbis' => GeneralHelper::getFloat($invoice->itbis),
+                    'status' => $invoice->status->name
                 ]),
-                'total' => GeneralHelper::getFloat($dispatch->inventoryExit->total),
-                'status' => $dispatch->status->name
-            ])
+
+
+            'dispatches' => $this->dispatches->isEmpty()
+                ? [['message' => 'No se registraron despachos en este periodo.']]
+                : $this->dispatches->map(fn($dispatch) => [
+                    'dispatch_id' => $dispatch->id,
+                    'date' => Carbon::parse($dispatch->dispatch_date)->format('d/m/Y'),
+                    'products' => $dispatch->inventoryExit->exitDetails->map(fn($detail) => [
+                        'product' => $detail->product->name,
+                        'quantity' => $detail->quantity,
+                        'unit_cost' => GeneralHelper::getFloat($detail->unit_cost),
+                        'sub_total' => GeneralHelper::getFloat($detail->quantity * $detail->unit_cost),
+                    ]),
+                    'total' => GeneralHelper::getFloat($dispatch->inventoryExit->total),
+                    'status' => $dispatch->status->name
+                ]),
         ];
     }
 }

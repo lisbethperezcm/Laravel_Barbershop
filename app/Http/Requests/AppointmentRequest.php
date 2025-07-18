@@ -112,6 +112,7 @@ class AppointmentRequest extends FormRequest
 
             $exists = Appointment::where('barber_id', $barberId)
                 ->where('appointment_date', $appointmentDate)
+                ->where('status_id', '!=', 6)
                 ->where(function ($query) use ($start_time, $end_time) {
                     $query->where(function ($q) use ($start_time, $end_time) {
                         //La nueva cita comienza dentro de una cita existente (pero no justo cuando termina)
