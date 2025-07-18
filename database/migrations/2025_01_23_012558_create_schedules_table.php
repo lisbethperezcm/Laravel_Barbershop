@@ -17,7 +17,7 @@ return new class extends Migration
         $table->foreignId('day_id')->constrained()->onDelete('cascade');
         $table->time('start_time');
         $table->time('end_time');
-        $table->enum('status', ['active', 'inactive'])->default('inactive'); // Status of the schedule
+        $table->foreignId('status_id')->nullable()->default(1)->constrained('statuses')->onDelete('set null'); // Status of the schedule
         $table->unsignedBigInteger('updated_by')->nullable();
         $table->foreign('updated_by')->references('id')->on('users')->onDelete('set null');
         $table->timestamps();
@@ -32,6 +32,7 @@ return new class extends Migration
         Schema::table('schedules', function (Blueprint $table) {
             $table->dropForeign(['barber_id']);
             $table->dropForeign(['updated_by']);
+            $table->dropForeign(['status_id']);
 
         });
         Schema::dropIfExists('schedules');

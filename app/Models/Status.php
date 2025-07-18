@@ -11,22 +11,27 @@ class Status extends Model
     protected $fillable = ['name'];
 
 
-public function products()
-{
-    return $this->hasMany(Product::class);
-}
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
 
-public function appointments()
-{
-    return $this->hasMany(Appointment::class);
-}
-public function invoices()
-{
-    return $this->hasMany(Invoice::class);
-}
+    public function appointments()
+    {
+        return $this->hasMany(Appointment::class);
+    }
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
 
-public function barberDispatches(){
+    public function barberDispatches()
+    {
 
-    return $this->hasMany(BarberDispatch::class);
-}
+        return $this->hasMany(BarberDispatch::class);
+    }
+    public function schedules()
+    {
+        return $this->hasMany(Schedule::class);
+    }
 }

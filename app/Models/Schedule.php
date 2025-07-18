@@ -18,7 +18,7 @@ class Schedule extends Model
         'day_id', 
         'start_time', 
         'end_time', 
-        'status',
+        'status_id',
     ];
 
 
@@ -30,6 +30,11 @@ class Schedule extends Model
     public function day()
     {
         return $this->belongsTo(Day::class); 
+    }
+
+      public function status()
+    {
+        return $this->belongsTo(Status::class);
     }
 
     public static function boot()

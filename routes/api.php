@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\BarberController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\CareTipController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ProductController;
@@ -66,6 +67,7 @@ Route::delete('/care-tips/{careTip}', [CareTipController::class, 'destroy']); //
 });
 
 
+
 /* 🔹 RUTAS PÚBLICAS */
 
 
@@ -111,3 +113,6 @@ Route::post('/barbers/report', [BarberController::class, 'calculateReport']);
 Route::get('/care-tips', [CareTipController::class, 'index']); // Listar todos los tips
 Route::get('/care-tips/{careTip}', [CareTipController::class, 'show']); // Mostrar un tip específico
 Route::post('/care-tips/by-services', [CareTipController::class, 'getTipsByServices']); // Obtener tips por servicios
+
+// 📌 REPORTES (Reports)
+Route::get('reports/daily-summary', [ReportController::class, 'dailySummary']);
