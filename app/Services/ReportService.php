@@ -2,10 +2,11 @@
 
 namespace App\Services;
 
-use App\Models\Appointment;
-use App\Models\Invoice;
-use App\Models\Barber;
 use Carbon\Carbon;
+use App\Models\Barber;
+use App\Models\Invoice;
+use App\Models\Appointment;
+use App\Helpers\GeneralHelper;
 
 class ReportService
 {
@@ -92,7 +93,7 @@ class ReportService
             return [
                 'month' => $month,
                 'month_name' => $monthNames[$month],
-                'total_income' => round((float) $income, 2),
+                'total_income' => GeneralHelper::getFloat($income),
             ];
         });
 
