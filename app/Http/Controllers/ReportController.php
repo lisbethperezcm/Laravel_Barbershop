@@ -55,6 +55,12 @@ class ReportController extends Controller
     }
 
 
+    public function yearlyIncomeByMonth()
+    {
+        return $this->reportService->getYearlyIncomeByMonth();
+    }
+
+
 
     /**
      * Display a listing of the resource.

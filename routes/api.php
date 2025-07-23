@@ -116,3 +116,4 @@ Route::post('/care-tips/by-services', [CareTipController::class, 'getTipsByServi
 
 // 📌 REPORTES (Reports)
 Route::get('reports/daily-summary', [ReportController::class, 'dailySummary']);
+Route::get('reports/yearly-income', [ReportController::class, 'yearlyIncomeByMonth']);
