@@ -19,17 +19,27 @@ class BarberController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $barbers = Barber::with(['person.user', 'commission'])->get();
+        $barbersQuery = Barber::with(['person.user', 'commission']);
 
-          //colección de barberos
-           return response()->json([
+        // Obtener el nombre del barbero del request (si viene)
+        $barber_name = $request->input('name');
+
+        // Filtro por nombre completo si se envía en la petición
+        if ($barber_name) {
+            $barbersQuery->whereHas('Person', function ($q) use ($barber_name) {
+                $q->fullNameLike($barber_name);
+            });
+        }
+
+        $barbers= $barbersQuery->get();
+        //colección de barberos
+        return response()->json([
             'data' => new   BarberCollection($barbers),
             'errorCode' => '200'
         ], 200);
     }
-
 
     /**
      * Store a newly created resource in storage.
@@ -97,36 +107,36 @@ class BarberController extends Controller
 
 
 
-         // Si no se envían fechas, usamos el filtro
-    if (!$request->filled('fecha_inicio') || !$request->filled('fecha_fin')) {
-        switch ($request->filtro) {
-            case 'mes':
-                $request->merge([
-                    'fecha_inicio' => $today->copy()->startOfMonth()->toDateString(),
-                    'fecha_fin' => $today->copy()->endOfMonth()->toDateString()
-                ]);
-                break;
-            case 'semana':
-                $request->merge([
-                    'fecha_inicio' => $today->copy()->startOfWeek()->toDateString(),
-                    'fecha_fin' => $today->copy()->endOfWeek()->toDateString()
-                ]);
-                break;
-            case 'quincena':
-                if ($today->day <= 15) {
+        // Si no se envían fechas, usamos el filtro
+        if (!$request->filled('fecha_inicio') || !$request->filled('fecha_fin')) {
+            switch ($request->filtro) {
+                case 'mes':
                     $request->merge([
                         'fecha_inicio' => $today->copy()->startOfMonth()->toDateString(),
-                        'fecha_fin' => $today->copy()->startOfMonth()->addDays(14)->toDateString()
-                    ]);
-                } else {
-                    $request->merge([
-                        'fecha_inicio' => $today->copy()->startOfMonth()->addDays(15)->toDateString(),
                         'fecha_fin' => $today->copy()->endOfMonth()->toDateString()
                     ]);
-                }
-                break;
+                    break;
+                case 'semana':
+                    $request->merge([
+                        'fecha_inicio' => $today->copy()->startOfWeek()->toDateString(),
+                        'fecha_fin' => $today->copy()->endOfWeek()->toDateString()
+                    ]);
+                    break;
+                case 'quincena':
+                    if ($today->day <= 15) {
+                        $request->merge([
+                            'fecha_inicio' => $today->copy()->startOfMonth()->toDateString(),
+                            'fecha_fin' => $today->copy()->startOfMonth()->addDays(14)->toDateString()
+                        ]);
+                    } else {
+                        $request->merge([
+                            'fecha_inicio' => $today->copy()->startOfMonth()->addDays(15)->toDateString(),
+                            'fecha_fin' => $today->copy()->endOfMonth()->toDateString()
+                        ]);
+                    }
+                    break;
+            }
         }
-    }
 
         // Obtener el total de servicios (filtrado con helper)
         $invoices = $barber->invoices()
@@ -161,7 +171,7 @@ class BarberController extends Controller
             'total_services' => $totalServices,
             'commission_percentage' => $commissionRate * 100,
             'total_commission' => $totalCommission,
-            'net_income' => $netIncome, 
+            'net_income' => $netIncome,
             'total_dispatches' => $totalDispatches,
             'final_balance' => $finalBalance,
             'invoices' => $invoices,
@@ -169,8 +179,8 @@ class BarberController extends Controller
             'fecha_inicio' => $request->fecha_inicio,
             'fecha_fin' => $request->fecha_fin,
         ]);
-        
-        
+
+
         //Retornar el reporte generado
         return response()->json([
             'data' => $barberReport,
@@ -178,7 +188,7 @@ class BarberController extends Controller
         ], 200);
     }
 
-      /**
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(Barber $barber)

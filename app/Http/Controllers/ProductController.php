@@ -11,17 +11,26 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        $products = Product::all();
 
-        return response()->json([
-            'data' => $products,
-            'errorCode' => '200'
-        ], 200);
+public function index(Request $request)
+{
+    // Obtener el nombre del producto del request (si viene)
+    $product_name = $request->input('name');
+
+    $productsQuery = Product::query();
+
+    // Filtro por nombre si se envía en la petición
+    if ($product_name) {
+        $productsQuery->nameLike($product_name);
     }
 
+    $products = $productsQuery->get();
 
+    return response()->json([
+        'data' => $products,
+        'errorCode' => '200'
+    ], 200);
+}
     /**
      * Store a newly created resource in storage.
      */

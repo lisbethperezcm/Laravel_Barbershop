@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -23,6 +24,11 @@ class Person extends Model
         'deleted_at' => 'datetime',
     ];
 
+
+    public function scopeFullNameLike($query, $name)
+    {
+        return $query->where(DB::raw("CONCAT(first_name, ' ', last_name)"), 'like', '%' . $name . '%');
+    }
 
     public function user()
     {
