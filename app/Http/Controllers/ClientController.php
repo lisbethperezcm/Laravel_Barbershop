@@ -12,11 +12,29 @@ class ClientController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-       $clients = Client::with(['Person.user'])->get();
 
-       return new ClientCollection($clients);
+        $clientsQuery = Client::with(['Person.user']);
+
+           // Obtener el nombre del cliente del request (si viene)
+        $client_name = $request->input('name');
+
+        // Filtro por nombre completo si se envía en la petición
+        if ($client_name) {
+            $clientsQuery->whereHas('Person', function ($q) use ($client_name) {
+                $q->fullNameLike($client_name);
+            });
+        }
+
+        $clients = $clientsQuery->get();
+
+
+         return response()->json([
+            'data' => new   ClientCollection($clients),
+            'errorCode' => '200'
+        ], 200);
+       
     }
 
     /*
@@ -28,8 +46,6 @@ class ClientController extends Controller
         // Eso relaciona el modelo cliente con el modelo persona 
         // asume que el campo person_id  en el modelo cliente se relaciona con el id persona
         $person->client()->save($client);
-
-    
     }
 
     /**
@@ -61,7 +77,7 @@ class ClientController extends Controller
      */
     public function destroy(Client $client)
     {
-        
+
         if ($client->person) {
             $client->person->delete(); // Soft Delete de la persona
         }
@@ -75,6 +91,4 @@ class ClientController extends Controller
             'errorCode' => 200
         ]);
     }
-
-    
 }

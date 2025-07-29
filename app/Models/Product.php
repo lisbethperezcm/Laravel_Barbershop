@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -28,8 +29,12 @@ class Product extends Model
     ];
 
 
+    public function scopeNameLike($query, $name)
+    {
+        return $query->where('name', 'like', '%' . $name . '%');
+    }
 
-      /**
+    /**
      * Accesor para calcular el ITBIS automáticamente.
      */
     public function getCalculatedItbisAttribute(): float

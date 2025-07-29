@@ -145,7 +145,7 @@ class AppointmentTest extends TestCase
 
         // Recorrer cada cita y verificar que `status_id` sea 3
         foreach ($data as $appointment) {
-            $this->assertEquals(3, $appointment['status_id'], "Se encontró una cita con status_id diferente de 3");
+            $this->assertEquals('Reservado', $appointment['status'], "Se encontró una cita con status_id diferente de 'Reservado'");
             $this->assertEquals($client1->id, $appointment['client_id'], "Se encontró una cita con client_id diferente de " . $client1->id);
         }
     }
