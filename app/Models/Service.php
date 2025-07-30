@@ -23,6 +23,8 @@ class Service extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
+        'current_price' => 'float',
+        'previous_price' => 'float',
     ];
 
     public function appointments()
