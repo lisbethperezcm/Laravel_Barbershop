@@ -26,6 +26,9 @@ class Product extends Model
 
     protected $casts = [
         'deleted_at' => 'datetime',
+        'sale_price' => 'float',
+        'unit_cost' => 'float',
+        'itbis' => 'float',
     ];
 
 
