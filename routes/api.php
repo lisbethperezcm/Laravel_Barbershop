@@ -15,6 +15,7 @@ use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\BarberDispatchController;
 use App\Http\Controllers\InventoryExitsController;
+use App\Models\Service;
 
 /*
 |--------------------------------------------------------------------------
@@ -117,3 +118,4 @@ Route::post('/care-tips/by-services', [CareTipController::class, 'getTipsByServi
 // 📌 REPORTES (Reports)
 Route::get('reports/daily-summary', [ReportController::class, 'dailySummary']);
 Route::get('reports/yearly-income', [ReportController::class, 'yearlyIncomeByMonth']);
+Route::get('reports/popular-services', [ServiceController::class, 'getPopularServices']);

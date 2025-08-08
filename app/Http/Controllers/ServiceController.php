@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ServiceRequest;
+use App\Models\User;
 use App\Models\Service;
 use Illuminate\Http\Request;
 
-use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use App\Http\Requests\ServiceRequest;
 
 class ServiceController extends Controller
 {
@@ -94,4 +95,38 @@ class ServiceController extends Controller
             'errorCode' => 200
         ]);
     }
+
+    /**
+     * Get popular services.
+     *//**
+ * Get popular services.
+ */
+public function getPopularServices(int $statusId = 7)
+{
+    // Buscar servicios en citas completadas (status_id = 7)
+    $popularServices = DB::table('appointment_service')
+        ->join('appointments', 'appointment_service.appointment_id', '=', 'appointments.id')
+        ->join('services', 'services.id', '=', 'appointment_service.service_id')
+        ->where('appointments.status_id', $statusId) // Solo citas completadas
+        ->select('services.id', 'services.name', DB::raw('count(*) as total'))
+        ->groupBy('services.id', 'services.name')
+        ->orderByDesc('total')
+        ->get();
+
+    // Total de servicios usados en citas completadas
+    $totalUsed = $popularServices->sum('total') ?: 1; // Evita división por cero
+
+    // Calcular el porcentaje para cada servicio
+    $services = $popularServices->map(function ($service) use ($totalUsed) {
+        $service->percentage = round(($service->total / $totalUsed) * 100, 0); // redondeado entero
+        return $service;
+    });
+
+    return response()->json([
+        'total_samples' => $totalUsed,
+        'data' => $services,
+        'errorCode' => '200'
+    ], 200);
+}
+
 }
