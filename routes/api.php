@@ -30,6 +30,10 @@ use App\Models\Service;
 /* 🔹 RUTAS PROTEGIDAS (Requieren autenticación con Sanctum) */
 Route::middleware('auth:sanctum')->group(function () {
 
+/*📌 NOTIFICACIONES (Notifications) */
+    Route::get('/v1/notifications', function (Request $r) {
+        return $r->user()->notifications()->latest()->paginate(20);
+    });
 
     /* 📌 CITAS (Appointments) */
 Route::post('/appointments', [AppointmentController::class, 'store']); // Crear una nueva cita
@@ -65,6 +69,8 @@ Route::put('/barber-dispatch/{dispatch}', [BarberDispatchController::class, 'upd
 Route::post('/care-tips', [CareTipController::class, 'store']); // Crear un tip
 Route::put('/care-tips/{careTip}', [CareTipController::class, 'update']); // Actualizar un tip
 Route::delete('/care-tips/{careTip}', [CareTipController::class, 'destroy']); // Eliminar un tip
+
+
 });
 
 
@@ -94,6 +100,7 @@ Route::put('/roles/{role}', [RoleController::class, 'update']);
 
 // 📌 **CITAS (Appointments)**
 Route::get('/appointments', [AppointmentController::class, 'index']); // Listar todas las citas
+Route::get('/appointments/weekly', [AppointmentController::class, 'getWeeklyAppointment']); // Obtener citas de la semana
 Route::get('/appointments/{appointment}', [AppointmentController::class, 'show']); // Obtener una cita por ID
 Route::get('/clients/appointments', [AppointmentController::class, 'getAppointmentsByClient']); // Listar citas de un cliente específico
 

@@ -18,7 +18,7 @@ class ClientController extends Controller
         $clientsQuery = Client::with(['Person.user']);
 
            // Obtener el nombre del cliente del request (si viene)
-        $client_name = $request->input('name');
+        $client_name = $request->input('name') ? trim($request->name) : null;
 
         // Filtro por nombre completo si se envía en la petición
         if ($client_name) {

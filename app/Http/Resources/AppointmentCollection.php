@@ -33,7 +33,11 @@ class AppointmentCollection extends ResourceCollection
                 'created_by' => $appointment->createdBy ? $appointment->createdBy->person->first_name . ' ' . $appointment->createdBy->person->last_name  : 'desconocido', //
                 'updated_at' => $appointment->updated_at, // fecha y hora de actualización
                 'services' => $appointment->services->map(function ($service) {
-                    return $service->name;
+                    return [
+                        'name'     => $service->name,
+                        'price'    => $service->current_price,
+                        'duration' => $service->duration
+                    ];
                 })
 
 

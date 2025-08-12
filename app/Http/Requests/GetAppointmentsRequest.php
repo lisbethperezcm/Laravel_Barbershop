@@ -24,6 +24,10 @@ class GetAppointmentsRequest extends FormRequest
         return [
             'client_id' => 'nullable|exists:clients,id',
         'status_id' => 'nullable|exists:statuses,id',
+        'barber_id' => 'nullable|exists:barbers,id',
+        'start_time' => 'nullable|date',
+        'end_time' => 'nullable|date',
+        'name'       => 'nullable|string|max:100',
         ];
     }
 }

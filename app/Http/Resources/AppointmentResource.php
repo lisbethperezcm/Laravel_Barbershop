@@ -25,7 +25,11 @@ class AppointmentResource extends JsonResource
             'created_at' => $this->created_at,
             'created_by' => $this->createdBy ? $this->createdBy->person->first_name . ' ' . $this->createdBy->person->last_name : 'desconocido',
             'updated_at' => $this->updated_at,
-            'services' => $this->services->map(fn($service) => $service->name)->toArray()
+            'services' => $this->services->map(fn($service) =>  [
+                        'name'     => $service->name,
+                        'price'    => $service->current_price,
+                        'duration' => $service->duration
+                    ])->toArray()
         ];
     }
 
