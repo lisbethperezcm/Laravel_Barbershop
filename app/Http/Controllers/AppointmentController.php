@@ -7,6 +7,7 @@ use App\Models\Client;
 use App\Models\Status;
 use App\Models\Appointment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\AppointmentRequest;
 use App\Http\Resources\AppointmentResource;
@@ -19,12 +20,43 @@ class AppointmentController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(GetAppointmentsRequest $request)
     {
-        $appointments = Appointment::with(['barber', 'client', 'services', 'createdBy.person'])
+
+        $name     = $request->name ? trim($request->name) : null;
+        $start    = $request->start_date ?? null;
+        $end      = $request->end_date ?? null;
+        $statusId = $request->status_id ?? null;
+
+        $appointments = Appointment::with(['barber.person', 'client.person', 'services', 'createdBy.person'])
+            ->filterNameBarberClient($name)        // ← scope (barbero/cliente por nombre)
+            ->dateRange($start, $end)              // ← scope (rango de fechas)
+            ->byStatus($statusId)                  // ← scope (status por id, opcional)
             ->orderBy('appointment_date', 'desc')
             ->get();
 
+
+        //Retornar el listado de citas formateada con AppointmentCollection
+        return response()->json([
+            'data' => new  AppointmentCollection($appointments),
+            'errorCode' => '200'
+        ], 200);
+    }
+
+    /**
+     * Get weekly appointments.
+     */
+    public function getWeeklyAppointment()
+    {
+
+        $startOfWeek = Carbon::now()->startOfWeek()->toDateString();
+        $endOfWeek = Carbon::now()->endOfWeek()->toDateString();
+
+        $appointments = Appointment::with(['barber.person', 'client.person', 'services', 'createdBy.person'])
+
+            ->dateRange($startOfWeek, $endOfWeek)  // ← scope (rango de fechas)
+            ->orderBy('appointment_date', 'desc')
+            ->get();
 
         //Retornar el listado de citas formateada con AppointmentCollection
         return response()->json([
@@ -57,7 +89,7 @@ class AppointmentController extends Controller
             ], 404);
         }
 
-        $appointmentDate =$request->appointment_date;
+        $appointmentDate = $request->appointment_date;
         $start_time = Carbon::parse($request->start_time)->format('H:i:s');
         $end_time = Carbon::parse($request->end_time)->format('H:i:s');
 
@@ -79,7 +111,7 @@ class AppointmentController extends Controller
         if ($clientConflict) {
             return response()->json([
                 'message' => 'El cliente ya tiene una cita programada en este horario con otro barbero.',
-                 'errorCode' => '422'
+                'errorCode' => '422'
             ], 422);
         }
         // Crear la cita
@@ -99,8 +131,8 @@ class AppointmentController extends Controller
         $appointment->services()->attach($request->services);
 
         //Enviar confirmacion de la cita por correo
-        $appointment->client->person->user->notify(new AppointmentNotification($appointment));
-
+        $appointment->client?->person?->user?->notify(new AppointmentNotification($appointment));
+        $appointment->barber?->person?->user?->notify(new AppointmentNotification($appointment));
 
         $appointment = new AppointmentResource($appointment);
         // Retornar respuesta
@@ -164,7 +196,7 @@ class AppointmentController extends Controller
      */
 
 
-     /**PENDIENTE IMPLEMENTACION DEL AppointmentRequest */
+    /**PENDIENTE IMPLEMENTACION DEL AppointmentRequest */
     public function update(Request $request, Appointment $appointment)
     {
         // Obtener los datos de la solicitud sin validación

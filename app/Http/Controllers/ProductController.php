@@ -15,7 +15,7 @@ class ProductController extends Controller
 public function index(Request $request)
 {
     // Obtener el nombre del producto del request (si viene)
-    $product_name = $request->input('name');
+    $product_name = $request->input('name') ? trim($request->name) : null;
 
     $productsQuery = Product::query();
 
@@ -52,14 +52,6 @@ public function index(Request $request)
      * Display the specified resource.
      */
     public function show(Product $product)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Product $product)
     {
         //
     }
