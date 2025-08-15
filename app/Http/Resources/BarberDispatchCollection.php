@@ -21,7 +21,7 @@ class BarberDispatchCollection extends ResourceCollection
                 'id' => $dispatch->id,
                 'barber_name' => $dispatch->barber->person->first_name . ' ' . $dispatch->barber->person->last_name,
                 'dispatch_date' => $dispatch->dispatch_date,
-                'status' => $dispatch->status->name,
+                'status' => $dispatch->status->name ?? 'Sin estado',
                 'products' => $dispatch->inventoryExit->exitDetails->map(fn($detail) => [
                     'product_name' => $detail->product->name,
                     'quantity' => $detail->quantity,

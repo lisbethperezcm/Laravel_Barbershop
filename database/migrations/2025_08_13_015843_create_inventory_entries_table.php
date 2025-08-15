@@ -11,29 +11,30 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('inventory_exits', function (Blueprint $table) {
+        Schema::create('inventory_entries', function (Blueprint $table) {
             $table->id();
-            $table->string('exit_type');
-            $table->date('exit_date');
-            $table->text('note')->nullable(); 
-            $table->decimal('total', 10, 2); 
+            $table->string('entry_type')->default('Compra'); // Tipo de entrada: Compra, Devolución, Ajuste, etc.
+            $table->date('entry_date'); // Fecha de la entrada
+            $table->string('note')->nullable(); // Nota u observaciones
+            $table->decimal('total', 10, 2)->default(0); // Total calculado
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null'); 
             $table->timestamps(); // created_at & updated_at
             $table->softDeletes();
         });
     }
+
     /**
      * Reverse the migrations.
      */
+
     public function down(): void
     {
 
-        Schema::table('inventory_exits', function (Blueprint $table) {
-         $table->dropForeign(['created_by']);
-        $table->dropForeign(['updated_by']);
-
-    });  
-    Schema::dropIfExists('inventory_exits');
+        Schema::table('inventory_entries', function (Blueprint $table) {
+            $table->dropForeign(['created_by']);
+            $table->dropForeign(['updated_by']);
+        });
+        Schema::dropIfExists('inventory_entries');
     }
 };

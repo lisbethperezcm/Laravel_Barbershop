@@ -24,7 +24,7 @@ class AuthController extends Controller
     public function register(RegisterRequest $request)
     {
 
-        return DB::transaction(function () use ($request) {
+        
 
             // La validación ya se maneja automáticamente con RegisterRequest
             $request->validated();
@@ -71,7 +71,7 @@ class AuthController extends Controller
                 'user' => new UserResource($user),
                 'errorCode' => '201'
             ], 201);
-        });
+        
     }
     public function login(LoginRequest $request)
     {

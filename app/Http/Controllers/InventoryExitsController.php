@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\InventoryExistRequest;
 use App\Models\Product;
 use App\Models\ExitDetail;
 use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
 use App\Models\InventoryExit;
-
 use function Laravel\Prompts\error;
+
 use App\Services\InventoryExitService;
+use App\Http\Requests\InventoryExistRequest;
+use App\Http\Resources\InventoryExitCollection;
 
 class InventoryExitsController extends Controller
 {
@@ -20,7 +21,16 @@ class InventoryExitsController extends Controller
     {
         $this->inventoryExitService = $inventoryExitService;
     }
-    public function index() {}
+    public function index() {
+
+      $inventoryExits = InventoryExit::with(['createdBy.person', 'exitDetails.product']) // createdBy es opcional si lo tienes
+            ->orderBy('exit_date', 'desc')
+            ->get();
+        return response()->json([
+            'data'      => new InventoryExitCollection($inventoryExits),
+            'errorCode' => 200,
+        ], 200);
+    }
 
 
     /**
@@ -58,14 +68,6 @@ class InventoryExitsController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(InventoryExit $inventoryExit)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, InventoryExit $inventoryExit)
@@ -78,6 +80,12 @@ class InventoryExitsController extends Controller
      */
     public function destroy(InventoryExit $inventoryExit)
     {
-        //
+        // Eliminar la salida de inventario
+        $this->inventoryExitService->deleteInventoryExit($inventoryExit);
+
+        return response()->json([
+            'message' => 'Salida de inventario eliminada exitosamente',
+            'errorCode' => 200
+        ], 200);
     }
 }

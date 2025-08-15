@@ -1,4 +1,6 @@
 <?php
+
+use App\Models\Service;
 use Illuminate\Http\Request;
 use App\Models\BarberDispatch;
 use Illuminate\Support\Facades\Route;
@@ -15,7 +17,7 @@ use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\BarberDispatchController;
 use App\Http\Controllers\InventoryExitsController;
-use App\Models\Service;
+use App\Http\Controllers\InventoryEntryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,47 +30,63 @@ use App\Models\Service;
 */
 
 /* 🔹 RUTAS PROTEGIDAS (Requieren autenticación con Sanctum) */
+
 Route::middleware('auth:sanctum')->group(function () {
 
-/*📌 NOTIFICACIONES (Notifications) */
+
+      // --- Rutas SIN transacción (lecturas, listados, etc.)
+      
+    /* 📌 Cerrar sesion */
+    Route::post('/logout', [AuthController::class, 'logout']);
+
+    /* 📌 INVENTARIO (Inventory) */
+    Route::get('/inventory-entries', [InventoryEntryController::class, 'index']);
+    /*📌 NOTIFICACIONES (Notifications) */
     Route::get('/v1/notifications', function (Request $r) {
         return $r->user()->notifications()->latest()->paginate(20);
     });
 
-    /* 📌 CITAS (Appointments) */
-Route::post('/appointments', [AppointmentController::class, 'store']); // Crear una nueva cita
-Route::put('/appointments/{appointment}', [AppointmentController::class, 'update']); // Actualizar una cita existente
-Route::put('appointments/{appointment}/status', [AppointmentController::class, 'updateStatus']); //Actualizar estatus de la cita
-Route::delete('/appointments/{appointment}', [AppointmentController::class, 'destroy']); // Eliminar una cita
+    // --- Rutas CON transacción (crear/editar/eliminar)
 
-  
-  
-Route::post('/servicios', [ServiceController::class, 'store']);
-Route::put('/servicios/{service}', [ServiceController::class, 'update']);
-Route::delete('/servicios/{service}', [ServiceController::class, 'destroy']);
+    Route::middleware(['db.transaction'])->group(function () {
 
-    /* 📌 PRODUCTOS (Products) */
-Route::post('/products', [ProductController::class, 'store']); // Crear un nuevo producto
-Route::delete('/products', [ProductController::class, 'destroy']); // eliminar un producto
+        /* 📌 CITAS (Appointments) */
+        Route::post('/appointments', [AppointmentController::class, 'store']); // Crear una nueva cita
+        Route::put('/appointments/{appointment}', [AppointmentController::class, 'update']); // Actualizar una cita existente
+        Route::put('appointments/{appointment}/status', [AppointmentController::class, 'updateStatus']); //Actualizar estatus de la cita
+         Route::delete('/appointments/{appointment}', [AppointmentController::class, 'destroy']); // Eliminar una cita
 
-/* 📌 Cerrar sesion */
-Route::post('/logout', [AuthController::class, 'logout']);
+        /* 📌 SERVICIOS (Services) */
+        Route::post('/servicios', [ServiceController::class, 'store']);
+        Route::put('/servicios/{service}', [ServiceController::class, 'update']);
+        Route::delete('/servicios/{service}', [ServiceController::class, 'destroy']);
+
+        /* 📌 PRODUCTOS (Products) */
+        Route::post('/products', [ProductController::class, 'store']); // Crear un nuevo producto
+        Route::delete('/products', [ProductController::class, 'destroy']); // eliminar un producto
+
+        /* 📌 INVENTARIO (Inventory) */
+        Route::post('/inventory-exits', [InventoryExitsController::class, 'store']);
+        Route::get('/inventory-exits', [InventoryExitsController::class, 'index']);
+        Route::delete('/inventory-exits/{inventoryExit}', [InventoryExitsController::class, 'destroy']);
+
+        Route::post('/inventory-entries', [InventoryEntryController::class, 'store']);
+
+        // 📌 **FACTURAS (Invoices)*/
+        Route::post('/invoices', [InvoiceController::class, 'store']); // Crear una factura
+        Route::delete('/invoices/{invoice}', [InvoiceController::class, 'destroy']); // Eliminar una factura
+
+        /* 📌 DESPACHOS (Dispatches) */
+        Route::post('/barber-dispatch', [BarberDispatchController::class, 'store']);
+        Route::put('/barber-dispatch/{dispatch}', [BarberDispatchController::class, 'update']);
 
 
-/* 📌 INVENTARIO (Inventory) */
-Route::post('/inventory-exits', [InventoryExitsController::class, 'store']);
+        /* 📌 TIPS DE CUIDADO (Care Tips) */
+        Route::post('/care-tips', [CareTipController::class, 'store']); // Crear un tip
+        Route::put('/care-tips/{careTip}', [CareTipController::class, 'update']); // Actualizar un tip
+        Route::delete('/care-tips/{careTip}', [CareTipController::class, 'destroy']); // Eliminar un tip
 
-// 📌 **FACTURAS (Invoices)*/
-Route::post('/invoices', [InvoiceController::class, 'store']); // Crear una factura
-
-/* 📌 DESPACHOS (Dispatches) */
-Route::post('/barber-dispatch', [BarberDispatchController::class, 'store']);
-Route::put('/barber-dispatch/{dispatch}', [BarberDispatchController::class, 'update']);
-
-/* 📌 TIPS DE CUIDADO (Care Tips) */
-Route::post('/care-tips', [CareTipController::class, 'store']); // Crear un tip
-Route::put('/care-tips/{careTip}', [CareTipController::class, 'update']); // Actualizar un tip
-Route::delete('/care-tips/{careTip}', [CareTipController::class, 'destroy']); // Eliminar un tip
+    });
 
 
 });
@@ -76,7 +94,6 @@ Route::delete('/care-tips/{careTip}', [CareTipController::class, 'destroy']); //
 
 
 /* 🔹 RUTAS PÚBLICAS */
-
 
 
 /* 🔹 AUTENTICACIÓN */
@@ -108,8 +125,8 @@ Route::get('/clients/appointments', [AppointmentController::class, 'getAppointme
 Route::get('/products', [ProductController::class, 'index']); // Listar todos los productos
 
 // 📌 **SERVICIOS (Services)**
-Route::get('/servicios/{service}', [ServiceController::class, 'show']);//getServiciosById
-Route::get('/servicios', [ServiceController::class, 'index']);//Obtener servicios
+Route::get('/servicios/{service}', [ServiceController::class, 'show']); //getServiciosById
+Route::get('/servicios', [ServiceController::class, 'index']); //Obtener servicios
 
 /* 📌 DESPACHOS (Dispatches) */
 Route::get('/barber-dispatch', [BarberDispatchController::class, 'index']);
@@ -126,3 +143,6 @@ Route::post('/care-tips/by-services', [CareTipController::class, 'getTipsByServi
 Route::get('reports/daily-summary', [ReportController::class, 'dailySummary']);
 Route::get('reports/yearly-income', [ReportController::class, 'yearlyIncomeByMonth']);
 Route::get('reports/popular-services', [ServiceController::class, 'getPopularServices']);
+
+// 📌 FACTURAS (Invoices)
+Route::get('/invoices', [InvoiceController::class, 'index']); // Listar todas las facturas
