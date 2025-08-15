@@ -74,6 +74,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // 📌 **FACTURAS (Invoices)*/
         Route::post('/invoices', [InvoiceController::class, 'store']); // Crear una factura
+        Route::delete('/invoices/{invoice}', [InvoiceController::class, 'destroy']); // Eliminar una factura
 
         /* 📌 DESPACHOS (Dispatches) */
         Route::post('/barber-dispatch', [BarberDispatchController::class, 'store']);
@@ -142,3 +143,6 @@ Route::post('/care-tips/by-services', [CareTipController::class, 'getTipsByServi
 Route::get('reports/daily-summary', [ReportController::class, 'dailySummary']);
 Route::get('reports/yearly-income', [ReportController::class, 'yearlyIncomeByMonth']);
 Route::get('reports/popular-services', [ServiceController::class, 'getPopularServices']);
+
+// 📌 FACTURAS (Invoices)
+Route::get('/invoices', [InvoiceController::class, 'index']); // Listar todas las facturas

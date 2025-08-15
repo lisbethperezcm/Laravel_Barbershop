@@ -15,14 +15,14 @@ class InvoiceService
     public function createInvoice(array $data): Invoice
     {
 
-        $appointmentId = $data['appointment_id'] ? : null;
+        $appointmentId = $data['appointment_id'] ?: null;
         $appointment = $appointmentId ? Appointment::find($appointmentId) : null;
         $products = $data['products'] ?? [];
         // Asignar el id del cliente si se obtiene de la cita o se obtiene de fomulario
         $client_id = $appointment ? $appointment->client_id : $data['client_id'];
         // 1) Crear la factura sin total
         $invoice = Invoice::create([
-            'appointment_id' => $appointment?->id ,
+            'appointment_id' => $appointment?->id,
             'client_id' => $client_id,
             'barber_id' => $appointment?->barber_id,
             'status_id' => $data['status_id'],
@@ -32,7 +32,7 @@ class InvoiceService
             'total' => 0, // se recalcula luego
             'itbis' => 0, // se recalcula luego
         ]);
-        
+
         // 2) Sincronizar detalles (resta stock: -1)
         $this->processProductDetails(
             movement: $invoice,
@@ -42,8 +42,12 @@ class InvoiceService
             getUnitCost: fn($product, $line) => $product->sale_price, // usa el unit_cost de la línea o del producto si no viene
             priceColumn: 'price' // columna de precio en InvoiceDetail
         );
+        if ($appointmentId) {
+            // 3) Crear detalles de servicios desde la cita
+            $this->createServiceDetailsFromAppointment($invoice, $appointment);
+        }
 
-        $this->createServiceDetailsFromAppointment($invoice, $appointment);
+       
         // Calcular subtotales y ITBIS
         $servicesSubtotal = $appointment ? $this->getServicesSubtotal($appointment) : 0;
         $productsSubtotal = $this->getProductsSubtotal($products);
@@ -59,25 +63,27 @@ class InvoiceService
         return $invoice;
     }
 
-protected function createServiceDetailsFromAppointment(Invoice $invoice, Appointment $appointment): void
-{
-    // Asegura tener los servicios cargados
-    $appointment->loadMissing('services');
+    protected function createServiceDetailsFromAppointment(Invoice $invoice, Appointment $appointment): void
+    {
+        // Asegura tener los servicios cargados
+        $appointment->loadMissing('services');
 
-    foreach ($appointment->services as $service) {
-        $quantity = (int) ($service->pivot->quantity ?? 1);
-        if ($quantity < 1) { $quantity = 1; }
+        foreach ($appointment->services as $service) {
+            $quantity = (int) ($service->pivot->quantity ?? 1);
+            if ($quantity < 1) {
+                $quantity = 1;
+            }
 
-        $invoice->invoiceDetails()->create([
-            'service_id' => $service->id,
-            'product_id' => null,
-            'quantity'   => $quantity,
-            //"precio unitario" de venta del servicio.
-            'price'  => number_format((float)$service->current_price, 2, '.', ''),
-        
-        ]);
+            $invoice->invoiceDetails()->create([
+                'service_id' => $service->id,
+                'product_id' => null,
+                'quantity'   => $quantity,
+                //"precio unitario" de venta del servicio.
+                'price'  => number_format((float)$service->current_price, 2, '.', ''),
+
+            ]);
+        }
     }
-}
     protected function getServicesSubtotal(Appointment $appointment): float
     {
         // Calcular el total sumando los precios de los servicios de la cita
@@ -116,5 +122,19 @@ protected function createServiceDetailsFromAppointment(Invoice $invoice, Appoint
         return collect($products)->sum(
             fn($product) => ($productsModel[$product['id']]->calculated_itbis * $product['quantity'] ?? 0)
         );
+    }
+    /**
+     * Elimina una factura y revierte el stock de sus detalles.
+     */
+    public function deleteInvoice(Invoice $invoice): Invoice
+    {
+        // Revertir stock de los detalles
+        $this->softDeleteMovementAndRevertStock(
+            $invoice,
+            'invoiceDetails',
+            -1 // Resta stock
+        );
+
+        return $invoice->fresh();
     }
 }

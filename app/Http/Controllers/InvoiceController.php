@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use App\Models\InvoiceDetail;
 use App\Services\InvoiceService;
 use App\Http\Requests\InvoiceRequest;
+use App\Http\Resources\InvoiceCollection;
 use App\Http\Resources\InvoiceResource;
 use App\Notifications\InvoiceGeneratedNotification;
 use App\Models\Service;  // Asegúrate de importar el modelo de servicios si lo usas.
@@ -29,6 +30,17 @@ class InvoiceController extends Controller
         $this->invoiceService = $invoiceService;
     }
 
+    public function index()
+    {
+        $invoices = Invoice::with(['appointment', 'client.person', 'invoiceDetails.product', 'invoiceDetails.service'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return response()->json([
+            'data' => new InvoiceCollection($invoices),
+            'errorCode' => 200
+        ], 200);
+    }
     public function store(InvoiceRequest $request)
     {
         //Obtener el usuario autenticado 
@@ -58,4 +70,14 @@ class InvoiceController extends Controller
         ], 201);
     }
 
+    public function destroy(Invoice $invoice)
+    {
+        // Eliminar la factura
+        $this->invoiceService->deleteInvoice($invoice);
+
+        return response()->json([
+            'message' => 'Factura eliminada correctamente',
+        'errorCode' => 200
+        ], 200);
+    }
 }
