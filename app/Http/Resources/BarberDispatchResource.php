@@ -18,7 +18,7 @@ class BarberDispatchResource extends JsonResource
             'id' => $this->id,
             'barber_name' => $this->barber->person->first_name . ' ' . $this->barber->person->last_name,
             'dispatch_date' => $this->dispatch_date,
-            'status' => $this->status->name,
+            'status' => $this->status->name ?? 'Sin estado',
             'products' => $this->inventoryExit->exitDetails->map(fn($detail) => [
                 'product_name' => $detail->product->name,
                 'quantity' => $detail->quantity,

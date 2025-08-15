@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class InventoryExit extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'exit_type',
@@ -24,6 +25,8 @@ class InventoryExit extends Model
         'updated_at'=> 'datetime'
     ];
 
+    
+
      // Relación con el detalle de salida de inventario 
 
     public function exitDetails()
@@ -37,6 +40,10 @@ class InventoryExit extends Model
           return $this->hasOne(BarberDispatch::class, 'exit_id');
       }
 
+       public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
     public static function boot()
     {
         parent::boot();

@@ -11,12 +11,13 @@ class AppointmentCreated extends Notification
 {
     use Queueable;
 
+      protected $appointment;
     /**
      * Create a new notification instance.
      */
-    public function __construct()
+ public function __construct($appointment)
     {
-        //
+        $this->appointment = $appointment;
     }
 
     /**
@@ -26,7 +27,7 @@ class AppointmentCreated extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['database'];
     }
 
     /**

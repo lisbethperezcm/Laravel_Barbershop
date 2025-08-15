@@ -6,6 +6,7 @@ use App\Models\Barber;
 use Illuminate\Http\Request;
 use App\Models\InventoryExit;
 use App\Models\BarberDispatch;
+use Illuminate\Support\Facades\DB;
 use App\Services\InventoryExitService;
 use App\Http\Resources\BarberDispatchResource;
 use App\Http\Resources\BarberDispatchCollection;
@@ -51,43 +52,43 @@ class BarberDispatchController extends Controller
         ]);
 
 
-        // 👇 Calcular total del despacho con el método del servicio
-        $totalToDispatch = $this->inventoryExitService->calculateTotal($request->products);
-
         $barber = Barber::findOrFail($request->barber_id);
         // 👇 Obtener ingreso neto del barbero en el mes
-        $netIncome =$barber->getCurrentMonthNetIncome();
+        $netIncome = $barber->getCurrentMonthNetIncome();
 
-        // Validar
-        if ($totalToDispatch > $netIncome) {
-            return response()->json([
-                'message' => 'El monto a despachar excede el ingreso neto del barbero en este mes.',
-                'errorCode' => 422
-            ], 422);
-        }
 
-        // Crear la salida de inventario usando el `Service`
+        // 1) Crear la salida de inventario con el servicio (usa los campos que tu servicio espera)
         $inventoryExit = $this->inventoryExitService->createInventoryExit([
-            'exit_type' => 'Despacho a Barbero',
-            'exit_date' => $request->dispatch_date,
-            'products' => $request->products,
-            'note' => $request->note ?? null,
+            'exit_type' => $request->input('exit_type', 'Despacho a Barbero'),
+            'exit_date' => $request->input('dispatch_date'),
+            'note'      => $request->input('note'),
+            'products'  => $request->input('products', []), // formato: [{product_id, quantity}, ...]
         ]);
 
 
-        // Crear el despacho del barbero y asociarlo a la salida de inventario
+        $totalToDispatch = $inventoryExit->total;
+        // Validar
+        /*    if ($totalToDispatch > $netIncome) {
+                return response()->json([
+                    'message' => 'El monto a despachar excede el ingreso neto del barbero en este mes.',
+                    'errorCode' => 422
+                ], 422);
+            }*/
+        // 2) Crear el despacho del barbero vinculado a la salida creada
         $dispatch = BarberDispatch::create([
-            'exit_id' => $inventoryExit->id,
-            'barber_id' => $request->barber_id,
-            'dispatch_date' => $request->dispatch_date,
-            'status_id' => $request->status_id,
+            'barber_id' => $request->input('barber_id'),
+            'exit_id'   => $inventoryExit->id,
+            'dispatch_date' => $request->input('dispatch_date'),
+            'note'      => $request->input('note'),
+            'status_id' => $request->input('status_id'),
+            'created_by' => auth()->id(),
         ]);
 
 
+        // 3) Respuesta simple
         return response()->json([
-            'message' => 'Despacho registrado exitosamente.',
-            'data' => $dispatch,
-            'errorCode' => 201
+            'message'        => 'Despacho creado correctamente.',
+            'data'       => new BarberDispatchResource($dispatch),
         ], 201);
     }
 

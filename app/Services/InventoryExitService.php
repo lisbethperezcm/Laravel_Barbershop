@@ -2,168 +2,99 @@
 
 namespace App\Services;
 
-use App\Models\Product;
-use App\Models\ExitDetail;
 use App\Models\InventoryExit;
 use App\Models\BarberDispatch;
 use Illuminate\Support\Facades\DB;
+use App\Traits\HandlesInventoryLines;
 
 class InventoryExitService
 {
+    use HandlesInventoryLines;
+
     /**
      * Crear una salida de inventario con detalles de productos.
      */
     public function createInventoryExit(array $data)
     {
-        DB::beginTransaction();
-        try {
-            // Calcular el total de los productos
-            $total = $this->calculateTotal($data['products']);
 
-            // crear la salida de inventario
-            $inventoryExit = InventoryExit::create([
-                'exit_type' => $data['exit_type'] ?? 'Despacho a Barbero',
-                'exit_date' => $data['exit_date'],
-                'note' => $data['note'] ?? null,
-                'total' => $total,
-            ]);
+        // 1) Crear cabecera sin total
+        $inventoryExit = InventoryExit::create([
+            'exit_type' => $data['exit_type'] ?? 'Despacho a Barbero',
+            'exit_date' => $data['exit_date'],
+            'note'      => $data['note'] ?? null,
+            'total'     => 0, // se recalcula luego
+        ]);
 
-            // Guardar detalles de salida y actualizar stock
-            $this->storeExitDetails($inventoryExit, $data['products']);
+        // 2) Sincronizar detalles (resta stock: -1)
+        $this->processProductDetails(
+            movement: $inventoryExit,
+            productLines: $data['products'] ?? [],
+            detailsRelation: 'exitDetails',
+            stockDirection: -1, // resta stock
+            getUnitCost: null // usa el unit_cost de la línea o del producto si no viene
+        );
 
-            DB::commit();
-            return $inventoryExit;
-        } catch (\Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
+        // 3) Recalcular total desde la BD
+        $total = $this->calculateDocumentTotal($inventoryExit, 'exitDetails');
+        $inventoryExit->update(['total' => $total]);
+
+        return $inventoryExit;
     }
+
     /**
-     * actualizar una salida de inventario con detalles de productos.
+     * Actualizar una salida de inventario con detalles de productos.
      */
     public function updateInventoryExit(InventoryExit $inventoryExit, array $data)
     {
 
+        // Obtener el usuario autenticado (para el despacho asociado)
+        $userId = auth()->id();
 
-        DB::beginTransaction();
-        try {
-
-            // Obtener el usuario autenticado
-            $userId = auth()->id();
-            // Calcular el total con los nuevos productos
-
-            $total = $this->calculateTotal($data['products']);
-
-            // Asegurar que el total sea parte de los datos actualizados
-            $data['total'] = $total;
-
-            // Validar actualizacion de la fecha de la salida
-            
-            if (isset($data['dispatch_date'])) {
-                $data['exit_date'] = $data['dispatch_date'];
-            }
-            // Actualizar la salida de inventario
-            $inventoryExit->update($data);
-
-            // Obtener el despacho asociado y actualizar su `updated_by`
-            $barberDispatch = BarberDispatch::where('exit_id', $inventoryExit->id)->first();
-            if ($barberDispatch) {
-                $barberDispatch->update(['updated_by' => $userId, 'updated_at' => now()]);
-            }
-
-            // Obtener los productos actuales de la salida
-            $existingProducts = $inventoryExit->exitDetails()->pluck('product_id', 'id')->toArray();
-            $newProductIds = collect($data['products'])->pluck('product_id')->toArray();
-
-            // Manejar los detalles de la salida y el stock
-            foreach ($data['products'] as $product) {
-                if (isset($product['id']) && isset($existingProducts[$product['id']])) {
-                    // Producto ya existente, actualizarlo
-                    $exitDetail = ExitDetail::find($product['id']);
-
-                    // Restaurar stock antes de actualizar
-                    $exitDetail->product->increment('stock', $exitDetail->quantity);
-
-                    // Actualizar detalle de salida
-                    $exitDetail->update([
-                        'quantity' => $product['quantity'],
-                        'unit_cost' => $exitDetail->product->unit_cost,
-                    ]);
-
-                    // Reducir stock con la nueva cantidad
-                    $exitDetail->product->decrement('stock', $product['quantity']);
-                } else {
-                    // Nuevo producto, agregarlo
-                    $productModel = Product::find($product['product_id']);
-                    if ($productModel) {
-                        ExitDetail::create([
-                            'exit_id' => $inventoryExit->id,
-                            'product_id' => $product['product_id'],
-                            'quantity' => $product['quantity'],
-                            'unit_cost' => $productModel->unit_cost,
-                        ]);
-
-                        // Reducir stock del producto
-                        $productModel->decrement('stock', $product['quantity']);
-                    }
-                }
-            }
-
-            // Eliminar productos que ya no están en la solicitud
-            $productsToDelete = array_diff(array_keys($existingProducts), $newProductIds);
-            foreach ($productsToDelete as $productId) {
-                $exitDetail = ExitDetail::find($productId);
-                if ($exitDetail) {
-                    // Restaurar stock antes de eliminar
-                    $exitDetail->product->increment('stock', $exitDetail->quantity);
-                    $exitDetail->delete();
-                }
-            }
-
-            DB::commit();
-            return $inventoryExit;
-        } catch (\Exception $e) {
-            DB::rollBack();
-            throw $e;
+        // Si te llegan cambios de fecha con 'dispatch_date', mapea a exit_date
+        if (isset($data['dispatch_date'])) {
+            $data['exit_date'] = $data['dispatch_date'];
         }
-    }
-    /**
-     * Almacenar los detalles de la salida y actualizar el stock
-     */
-    protected function storeExitDetails(InventoryExit $inventoryExit, array $products)
-    {
-        foreach ($products as $product) {
-            $productModel = Product::find($product['product_id']);
 
-            if ($productModel) { // Verificar si el producto existe antes de continuar
-                ExitDetail::create([
-                    'exit_id' => $inventoryExit->id,
-                    'product_id' => $product['product_id'],
-                    'quantity' => $product['quantity'],
-                    'unit_cost' => $productModel->unit_cost,
-                ]);
+        // 1) Actualizar cabecera (sin tocar total aún)
+        $inventoryExit->update([
+            'exit_type' => $data['exit_type'] ?? $inventoryExit->exit_type,
+            'exit_date' => $data['exit_date'] ?? $inventoryExit->exit_date,
+            'note'      => $data['note']      ?? $inventoryExit->note,
+        ]);
 
-                // Reducir stock del producto
-                $productModel->decrement('stock', $product['quantity']);
-            }
+        // 2) Sincronizar detalles con el trait (resta stock: -1)
+        $this->processProductDetails(
+            movement: $inventoryExit,
+            productLines: $data['products'] ?? [],
+            detailsRelation: 'exitDetails',
+            stockDirection: -1,
+            getUnitCost: null // o pasa un resolver para forzar el unit_cost del producto
+        );
+
+        // 3) Recalcular total desde la BD
+        $total = $this->calculateDocumentTotal($inventoryExit, 'exitDetails');
+        $inventoryExit->update(['total' => $total]);
+
+        // 4) Actualizar despacho asociado (si existe)
+        $barberDispatch = BarberDispatch::where('exit_id', $inventoryExit->id)->first();
+        if ($barberDispatch) {
+            $barberDispatch->update(['updated_by' => $userId, 'updated_at' => now()]);
         }
+
+        return $inventoryExit;
     }
 
     /**
-     * Calcular el total de los productos
+     * Elimina una salida de inventario.
      */
-    public function calculateTotal(array $products): float
+    public function deleteInventoryExit($inventoryExit): InventoryExit
     {
-        $productsModel = Product::whereIn('id', collect($products)->pluck('product_id'))->get()->keyBy('id');
-
-        $total = 0;
-
-        foreach ($products as $product) {
-            if (isset($productsModel[$product['product_id']])) {
-                $total += $productsModel[$product['product_id']]->unit_cost * $product['quantity'];
-            }
-        }
-
-        return $total;
+        // Reutiliza el método del trait para revertir y borrar
+        $this->softDeleteMovementAndRevertStock(
+            $inventoryExit,   // La salida a eliminar
+            'exitDetails',    // Relación en el modelo
+            -1                // Salidas restan stock originalmente
+        );
+        return $inventoryExit->fresh();
     }
 }
