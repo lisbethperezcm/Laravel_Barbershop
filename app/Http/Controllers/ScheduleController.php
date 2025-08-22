@@ -18,7 +18,17 @@ class ScheduleController extends Controller
     }
     public function getAvailableSlots(Request $request)
     {
-        $barberId = $request->barber_id ?? (auth()->user()->barber->id ?? null);
+
+          $user = auth()->user();
+        if (!$user) {
+            return response([
+                'message' => 'No se pudo autenticar al usuario.',
+                'errorCode' => '401'
+            ], 401);
+        }
+
+     
+        $barberId = $request->barber_id ?? ($user->person->barber->id ?? null);
         $date = $request->date;
         $dayOfWeek = Carbon::parse($date)->dayOfWeek;
         $duration = $request->duration; // Duración del servicio en minutos

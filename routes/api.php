@@ -46,6 +46,9 @@ Route::middleware('auth:sanctum')->group(function () {
         return $r->user()->notifications()->latest()->paginate(20);
     });
 
+    Route::post('/barbers/availableSlots', [ScheduleController::class, 'getAvailableSlots']); // Obtener horarios disponibles de los barberos
+
+
     // --- Rutas CON transacción (crear/editar/eliminar)
 
     Route::middleware(['db.transaction'])->group(function () {
@@ -79,9 +82,7 @@ Route::middleware('auth:sanctum')->group(function () {
         /* 📌 DESPACHOS (Dispatches) */
         Route::post('/barber-dispatch', [BarberDispatchController::class, 'store']);
         Route::put('/barber-dispatch/{dispatch}', [BarberDispatchController::class, 'update']);
-        Route::post('/barbers/availableSlots', [ScheduleController::class, 'getAvailableSlots']); // Obtener horarios disponibles de los barberos
-
-
+      
         /* 📌 TIPS DE CUIDADO (Care Tips) */
         Route::post('/care-tips', [CareTipController::class, 'store']); // Crear un tip
         Route::put('/care-tips/{careTip}', [CareTipController::class, 'update']); // Actualizar un tip
