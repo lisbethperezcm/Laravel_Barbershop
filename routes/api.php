@@ -79,6 +79,7 @@ Route::middleware('auth:sanctum')->group(function () {
         /* 📌 DESPACHOS (Dispatches) */
         Route::post('/barber-dispatch', [BarberDispatchController::class, 'store']);
         Route::put('/barber-dispatch/{dispatch}', [BarberDispatchController::class, 'update']);
+        Route::post('/barbers/availableSlots', [ScheduleController::class, 'getAvailableSlots']); // Obtener horarios disponibles de los barberos
 
 
         /* 📌 TIPS DE CUIDADO (Care Tips) */
@@ -105,7 +106,6 @@ Route::post('/login', [AuthController::class, 'login']); // Inicia sesión y dev
 Route::get('/barbers', [BarberController::class, 'index']); // Listar todos los barberos
 Route::get('/barbers/{barber}', [BarberController::class, 'show']); // Obtener un barbero por ID
 Route::delete('/barbers/{barber}', [BarberController::class, 'destroy']); // Eliminar un barbero
-Route::post('/barbers/availableSlots', [ScheduleController::class, 'getAvailableSlots']); // Obtener horarios disponibles de los barberos
 
 // 📌 **CLIENTES (Clients)**
 Route::get('/clients', [ClientController::class, 'index']); // Listar todos los clientes
