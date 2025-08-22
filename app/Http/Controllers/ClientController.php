@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Client;
 use App\Models\Person;
 use Illuminate\Http\Request;
+use App\Http\Resources\ClientResource;
 use App\Http\Resources\ClientCollection;
 
 class ClientController extends Controller
@@ -53,7 +54,14 @@ class ClientController extends Controller
      */
     public function show(Client $client)
     {
-        //
+     
+        //Retornar el Cliente
+        return response()->json([
+            'data' => new ClientResource($client),
+            'errorCode' => '200'
+        ], 200);
+    
+
     }
 
     /**

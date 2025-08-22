@@ -109,6 +109,7 @@ Route::post('/barbers/availableSlots', [ScheduleController::class, 'getAvailable
 
 // 📌 **CLIENTES (Clients)**
 Route::get('/clients', [ClientController::class, 'index']); // Listar todos los clientes
+Route::get('/clients/{client}', [ClientController::class, 'show']); // Obtener un cliente por ID
 Route::delete('/clients', [ClientController::class, 'destroy']); // Eliminar un cliente
 // 📌 **ROLES (Roles)**
 Route::get('/roles', [RoleController::class, 'index']); // Listar los roles disponibles
