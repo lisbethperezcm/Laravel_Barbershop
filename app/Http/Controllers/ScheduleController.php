@@ -18,7 +18,7 @@ class ScheduleController extends Controller
     }
     public function getAvailableSlots(Request $request)
     {
-        $barberId = $request->barber_id;
+        $barberId = $request->barber_id ?? (auth()->user()->barber->id ?? null);
         $date = $request->date;
         $dayOfWeek = Carbon::parse($date)->dayOfWeek;
         $duration = $request->duration; // Duración del servicio en minutos
