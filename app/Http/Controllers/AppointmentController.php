@@ -160,8 +160,10 @@ class AppointmentController extends Controller
         ], 200);
     }
 
-    public function getAppointmentsByClient(GetAppointmentsRequest $request)
+     public function getAppointmentByClient(GetAppointmentsRequest $request)
     {
+        // 👀 Log para ver qué params llegan en la query string
+        Log::info('getAppointmentByClient query', $request->query());
 
         //$user = auth()->user();
         // Obtener el status_id del request (si viene)
