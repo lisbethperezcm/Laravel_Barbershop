@@ -179,9 +179,30 @@ class AppointmentController extends Controller
                 'errorCode' => '404'
             ], 404);
         }
+    }
+
+    public function getAppointmentByBarber(GetAppointmentsRequest $request)
+    {
+        // 👀 Log para ver qué params llegan en la query string
+       // Log::info('getAppointmentByBarber query', $request->query());
+
+        //$user = auth()->user();
+        // Obtener el status_id del request (si viene)
+        $status_id = $request->input('status_id');
+        $barber_id = $request->barber_id;
+
+        // $user->person->client->id ?? null;
+
+        // Verificar si el usuario autenticado tiene un cliente asociado
+        if (!$barber_id) {
+            return response([
+                'message' => 'Barbero no encontrado.',
+                'errorCode' => '404'
+            ], 404);
+        }
 
         $appointments = Appointment::with(['barber', 'client', 'services', 'createdBy.person'])
-            ->where('client_id', $client_id)
+            ->where('barber_id', $barber_id)
             //->byStatus($status_id)
             ->when($status_id, fn($query) => $query->where('status_id', $status_id))
             ->orderBy('appointment_date', 'desc')

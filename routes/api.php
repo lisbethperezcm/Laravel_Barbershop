@@ -124,6 +124,7 @@ Route::get('/appointments', [AppointmentController::class, 'index']); // Listar 
 Route::get('/appointments/weekly', [AppointmentController::class, 'getWeeklyAppointment']); // Obtener citas de la semana
 Route::get('/appointments/{appointment}', [AppointmentController::class, 'show']); // Obtener una cita por ID
 Route::get('/clients-appointments', [AppointmentController::class, 'getAppointmentByClient']); // Listar citas de un cliente específico
+Route::get('/barbers-appointments', [AppointmentController::class, 'getAppointmentByBarber']); // Listar citas de un barbero específico
 
 // 📌 **PRODUCTOS (Products)**
 Route::get('/products', [ProductController::class, 'index']); // Listar todos los productos
