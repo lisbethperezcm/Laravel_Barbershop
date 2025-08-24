@@ -14,12 +14,28 @@ class ScheduleController extends Controller
      */
     public function index()
     {
-        //
+        // Obtener el barbero del request o del usuario autenticado
+        $user = auth()->user();
+        $barberId = $request->barber_id ?? ($user->person->barber->id ?? null);
+
+        if (!$barberId) {
+            return response()->json([
+                'message' => 'No se encontró el barbero.',
+                'errorCode' => '404'
+            ], 404);
+        }
+
+        $schedules = Schedule::where('barber_id', $barberId)->get();
+
+        return response()->json([
+            'data' => $schedules,
+            'errorCode' => '200'
+        ], 200);
     }
     public function getAvailableSlots(Request $request)
     {
 
-          $user = auth()->user();
+        $user = auth()->user();
         if (!$user) {
             return response([
                 'message' => 'No se pudo autenticar al usuario.',
@@ -27,7 +43,8 @@ class ScheduleController extends Controller
             ], 401);
         }
 
-     
+        
+        //
         $barberId = $request->barber_id ?? ($user->person->barber->id ?? null);
         $date = $request->date;
         $dayOfWeek = Carbon::parse($date)->dayOfWeek;
@@ -105,6 +122,46 @@ class ScheduleController extends Controller
         ], 200);
     }
 
+
+   public function toggleStatus(Request $request)
+{ 
+    $id = $request->input('id');
+    $schedule = Schedule::find($id);
+
+    if (!$schedule) {
+        return response()->json([
+            'message' => 'Horario no encontrado.',
+            'errorCode' => '404'
+        ], 404);
+    }
+
+    // Solo validar conflictos si el horario está ACTIVO y se va a inactivar
+    if ($schedule->status_id == 1) {
+        $mysqlDayId = ($schedule->day_id == 7) ? 1 : $schedule->day_id + 1;
+        $hasConflict = Appointment::where('barber_id', $schedule->barber_id)
+            ->where('status_id', 3)
+            ->whereDate('appointment_date', '>', now()->toDateString())
+            ->whereRaw('DAYOFWEEK(appointment_date) = ?', [$mysqlDayId])
+            ->exists();
+
+        if ($hasConflict) {
+            return response()->json([
+                'message' => 'No puedes inactivar este horario porque el barbero tiene citas futuras en ese día. Modifica o cancela esas citas primero.',
+                'errorCode' => '409'
+            ], 409);
+        }
+    }
+
+    // Cambia el estado: 1 = activo, 2 = inactivo
+    $schedule->status_id = ($schedule->status_id == 1) ? 2 : 1;
+    $schedule->save();
+
+    return response()->json([
+        'message' => 'Estado del horario actualizado exitosamente.',
+        'data' => $schedule,
+        'errorCode' => '200'
+    ], 200);
+}
 
     /**
      * Store a newly created resource in storage.
