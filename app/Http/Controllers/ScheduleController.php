@@ -12,11 +12,11 @@ class ScheduleController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         // Obtener el barbero del request o del usuario autenticado
         $user = auth()->user();
-        $barberId = $request->barber_id ?? ($user->person->barber->id ?? null);
+        $barberId = $request->input('barber_id') ?? ($user->person->barber->id ?? null);
 
         if (!$barberId) {
             return response()->json([
