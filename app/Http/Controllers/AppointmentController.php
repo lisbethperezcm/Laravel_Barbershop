@@ -179,6 +179,18 @@ class AppointmentController extends Controller
                 'errorCode' => '404'
             ], 404);
         }
+        $appointments = Appointment::with(['barber', 'client', 'services', 'createdBy.person'])
+            ->where('client_id', $client_id)
+            //->byStatus($status_id)
+            ->when($status_id, fn($query) => $query->where('status_id', $status_id))
+            ->orderBy('appointment_date', 'desc')
+            ->get();
+
+        //Retornar el listado de citas formateada con AppointmentCollection
+        return response()->json([
+            'data' => new  AppointmentCollection($appointments),
+            'errorCode' => '200'
+        ], 200);
     }
 
     public function getAppointmentByBarber(GetAppointmentsRequest $request)
