@@ -14,6 +14,17 @@ class AppointmentNotification extends Notification
 
     protected $appointment;
     protected $role;
+
+    /*
+
+    Tipos de las notificaciones
+type NotificationType =
+  | "new_appointment"
+  | "reminder"
+  | "canceled"
+  | "payment"
+  | "review";
+    */
     /**
      * Create a new notification instance.
      */
@@ -54,6 +65,7 @@ class AppointmentNotification extends Notification
     }
 
 
+    
     public function toDatabase($notifiable): array
     {
         // Detectar rol del receptor para personalizar el mensaje
@@ -68,6 +80,7 @@ class AppointmentNotification extends Notification
         if ($this->role === 'cliente') {
             return [
                 'title' => 'Tu cita ha sido reservada',
+                'type' => 'new_appointment',
                 'body'  => "Tienes una cita con el barbero {$barberName} el {$date} a las {$time}.",
                 'appointment_id' => $this->appointment->id,
                 'role' => 'cliente',
@@ -77,6 +90,7 @@ class AppointmentNotification extends Notification
         if ($this->role === 'barbero') {
             return [
                 'title' => 'Nueva cita asignada',
+                'type' => 'new_appointment',
                 'body'  => "Atenderás a {$clientName} el {$date} a las {$time}.",
                 'appointment_id' => $this->appointment->id,
                 'role' => 'barbero',
@@ -86,6 +100,7 @@ class AppointmentNotification extends Notification
         // Fallback (admin u otros)
         return [
             'title' => 'Cita registrada',
+            'type' => 'new_appointment',
             'body'  => "Se creó una cita el {$date} a las {$time}.",
             'appointment_id' => $this->appointment->id,
             'role' => $roleName ?: 'unknown',
