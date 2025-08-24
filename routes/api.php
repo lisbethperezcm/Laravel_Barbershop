@@ -46,8 +46,9 @@ Route::middleware('auth:sanctum')->group(function () {
         return $r->user()->notifications()->latest()->paginate(20);
     });
 
+    /* 📌 HORARIOS (Schedules) */
     Route::post('/barbers/availableSlots', [ScheduleController::class, 'getAvailableSlots']); // Obtener horarios disponibles de los barberos
-
+    Route::get('/barbers/schedules', [ScheduleController::class, 'index']);
 
     // --- Rutas CON transacción (crear/editar/eliminar)
 
@@ -107,6 +108,7 @@ Route::post('/login', [AuthController::class, 'login']); // Inicia sesión y dev
 Route::get('/barbers', [BarberController::class, 'index']); // Listar todos los barberos
 Route::get('/barbers/{barber}', [BarberController::class, 'show']); // Obtener un barbero por ID
 Route::delete('/barbers/{barber}', [BarberController::class, 'destroy']); // Eliminar un barbero
+Route::post('schedules/toggle-status', [ScheduleController::class, 'toggleStatus']); // Inactivar y activar un horario
 
 // 📌 **CLIENTES (Clients)**
 Route::get('/clients', [ClientController::class, 'index']); // Listar todos los clientes

@@ -37,8 +37,9 @@ class Schedule extends Model
         return $this->belongsTo(Status::class);
     }
 
-    public static function boot()
+  /*  public static function boot()
     {
+        
         parent::boot();
     
         static::updating(function ($person) {
@@ -46,5 +47,5 @@ class Schedule extends Model
             // Supongamos que el usuario actual es accesible desde Auth
             $person->updated_by = auth()->user()->id;
         });
-    }
+    }*/
 }
