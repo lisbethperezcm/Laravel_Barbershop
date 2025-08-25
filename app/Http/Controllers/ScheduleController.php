@@ -6,6 +6,7 @@ use App\Models\Appointment;
 use Carbon\Carbon;
 use App\Models\Schedule;
 use Illuminate\Http\Request;
+use App\Http\Resources\ScheduleResource;
 
 class ScheduleController extends Controller
 {
@@ -28,7 +29,7 @@ class ScheduleController extends Controller
         $schedules = Schedule::where('barber_id', $barberId)->get();
 
         return response()->json([
-            'data' => $schedules,
+            'data' => ScheduleResource::collection($schedules),
             'errorCode' => '200'
         ], 200);
     }
