@@ -80,6 +80,7 @@ class AppointmentController extends Controller
         }
 
         $client_id = $request->client_id ?? $user->person->client->id ?? null;
+        $barber_id = $request->barber_id ?? $user->person->barber->id ?? null;
 
         // Verificar si el usuario tiene un cliente asociado
         if (!$client_id) {
@@ -117,7 +118,7 @@ class AppointmentController extends Controller
         // Crear la cita
         $appointment = new Appointment();
         $appointment->client_id = $client_id;
-        $appointment->barber_id = $request->barber_id;
+        $appointment->barber_id = $barber_id;
         $appointment->appointment_date = $request->appointment_date;
         $appointment->start_time = Carbon::parse($request->start_time)->format('H:i:s');
         $appointment->end_time = Carbon::parse($request->end_time)->format('H:i:s');
