@@ -28,7 +28,7 @@ class AppointmentRequest extends FormRequest
     {
         return [
             'client_id' => 'nullable|integer|exists:clients,id',
-            'barber_id' => 'required|integer|exists:barbers,id',
+            'barber_id' => 'nullable|integer|exists:barbers,id',
             'appointment_date' => 'required|date_format:Y-m-d',
             'start_time' => 'required|date_format:H:i:s', // Hora de inicio debe ser válida
             'end_time' => [
