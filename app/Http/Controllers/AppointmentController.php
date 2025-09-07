@@ -261,51 +261,38 @@ class AppointmentController extends Controller
      * Actualizar el status de la cita
      */
 
-    public function updateStatus(Request $request, Appointment $appointment)
-    {
-        $request->validate([
-            'status' => 'required|exists:statuses,name',
-        ]);
+   public function updateStatus(Request $request, Appointment $appointment)
+{
+    $data = $request->validate([
+        'status' => 'required|exists:statuses,id',
+    ]);
 
-        $newStatusId = Status::where('name', $request->status)->value('id');
+    $newStatusId = (int) $data['status'];
+    $currentName = $appointment->status->name;        // p.ej. 'Completado', 'Cancelado'
+    $targetStatus = Status::findOrFail($newStatusId); // para comparar por nombre de forma consistente
 
-        // 🔹 Validar si la cita ya está en un estado que no se puede cambiar
-        if ($appointment->status->name === 'Completado') {
-            return response()->json([
-                'message' => 'No puedes cambiar el estado de una cita que ya está completada.'
-            ], 400);
-        }
+    // 🔒 Reglas de negocio de cambio de estado
+    if ($currentName === 'Completado') {
+        return response()->json([
+            'message' => 'No puedes cambiar el estado de una cita que ya está completada.'
+        ], 400);
+    }
 
-        if ($appointment->status->name === 'Cancelado' && $request->status !== 'Cancelado') {
-            return response()->json([
-                'message' => 'No puedes modificar una cita que ha sido cancelada.'
-            ], 400);
-        }
+    // Si la cita está cancelada, no permitir cambiar a otro estado
+    if ($currentName === 'Cancelado' && $targetStatus->name !== 'Cancelado') {
+        return response()->json([
+            'message' => 'No puedes modificar una cita que ha sido cancelada.'
+        ], 400);
+    }
 
-        $appointment->update([
-            'status_id' => $newStatusId,
-        ]);
-
-        // 🔹 Recargar los datos con `fresh()`
-        $appointment = $appointment->fresh();
-
-        // Si la cita fue marcada como "Completado" y aún NO tiene factura se genera
-        if ($appointment->status->name === 'Completado' && !$appointment->invoice) {
-
-            $requestInvoice = new Request([
-                'appointment_id' => $appointment->id,
-                'status_id' => 8, // Estado inicial de la factura
-            ]);
-        }
-        // Llamar al método store del InvoiceController
-        app(InvoiceController::class)->store($requestInvoice);
 
         return response()->json([
-            'message' => "Cita marcada como {$appointment->status->name}.",
-            'appointment' => new AppointmentResource($appointment),
-            'errorCode' => '200'
+            'message'     => "Cita marcada como {$appointment->status->name}.",
+            'appointment' => new AppointmentResource($appointment->fresh()),
+            'errorCode'   => '200',
         ], 200);
     }
+
 
 
     /**
