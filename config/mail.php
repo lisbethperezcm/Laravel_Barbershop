@@ -34,11 +34,13 @@ return [
     */
 
     'mailers' => [
-        'resend' => [
+        //Produccion 
+       'resend' => [
             'transport' => 'resend',
         ],
 
-        /*
+        //Desarrollo
+       /* 
         'smtp' => [
             'transport' => 'smtp',
             'url' => env('MAIL_URL'),
