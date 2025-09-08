@@ -288,21 +288,7 @@ class AppointmentController extends Controller
     // Actualizar el estado de la cita
     $appointment->update(['status_id' => $newStatusId]);
 
-    // Recargar con relaciones
-    $appointment->load('status', 'invoice');
-
-    // Si quedó "Completado" y aún NO tiene factura → generar
-    if ($appointment->status->name === 'Completado' && !$appointment->invoice) {
-        // Asegúrate de referenciar la clase completa de Request
-        $requestInvoice = new \Illuminate\Http\Request([
-            'appointment_id' => $appointment->id,
-            'status_id'      => 8, // tu estado inicial de factura
-        ]);
-
-        // Llamada al controlador de facturas SOLO aquí, cuando aplica
-        app(InvoiceController::class)->store($requestInvoice);
-    }
-
+  
     return response()->json([
         'message'     => "Cita marcada como {$appointment->status->name}.",
         'appointment' => new AppointmentResource($appointment->fresh()),
