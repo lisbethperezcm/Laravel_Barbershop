@@ -34,13 +34,6 @@ return [
     */
 
     'mailers' => [
-    'log' => [
-        'transport' => 'log',
-        'channel' => env('MAIL_LOG_CHANNEL'),
-    ],
-
-/*
-    'mailers' => [
         'smtp' => [
             'transport' => 'smtp',
             'url' => env('MAIL_URL'),
@@ -53,8 +46,7 @@ return [
             'local_domain' => env('MAIL_EHLO_DOMAIN'),
           
         ],
-*/
-        
+
         'ses' => [
             'transport' => 'ses',
         ],
