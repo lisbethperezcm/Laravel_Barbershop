@@ -132,8 +132,8 @@ class AppointmentController extends Controller
         $appointment->services()->attach($request->services);
 
         //Enviar confirmacion de la cita por correo
-      //  $appointment->client?->person?->user?->notify(new AppointmentNotification($appointment));
-       // $appointment->barber?->person?->user?->notify(new AppointmentNotification($appointment));
+        $appointment->client?->person?->user?->notify(new AppointmentNotification($appointment));
+        $appointment->barber?->person?->user?->notify(new AppointmentNotification($appointment));
 
         $appointment = new AppointmentResource($appointment);
         // Retornar respuesta
