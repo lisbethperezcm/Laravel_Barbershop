@@ -34,6 +34,13 @@ return [
     */
 
     'mailers' => [
+    'log' => [
+        'transport' => 'log',
+        'channel' => env('MAIL_LOG_CHANNEL'),
+    ],
+
+/*
+    'mailers' => [
         'smtp' => [
             'transport' => 'smtp',
             'url' => env('MAIL_URL'),
@@ -44,10 +51,10 @@ return [
             'password' => env('MAIL_PASSWORD'),
             'timeout' => null,
             'local_domain' => env('MAIL_EHLO_DOMAIN'),
-            'verify_peer' => env('MAIL_VALIDATE_CERT',  false),
-            'verify_peer_name' => env('MAIL_VALIDATE_CERT',  false)
+          
         ],
-
+*/
+        
         'ses' => [
             'transport' => 'ses',
         ],
