@@ -30,7 +30,7 @@ class RegisterRequest extends FormRequest
         'phone_number' => 'nullable|string|max:15',
         'address' => 'nullable|string|max:255',
         'email' => 'required|email|unique:users,email',
-        'password' => 'required|min:8|confirmed',
+        'password' => 'nullable|min:8|confirmed',
         'role_id' => 'required|numeric',
         'commission' => 'nullable|integer|min:0|max:99',
         ];

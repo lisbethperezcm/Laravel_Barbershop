@@ -34,8 +34,8 @@ use App\Http\Controllers\InventoryEntryController;
 Route::middleware('auth:sanctum')->group(function () {
 
 
-      // --- Rutas SIN transacción (lecturas, listados, etc.)
-      
+    // --- Rutas SIN transacción (lecturas, listados, etc.)
+
     /* 📌 Cerrar sesion */
     Route::post('/logout', [AuthController::class, 'logout']);
 
@@ -58,7 +58,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/appointments', [AppointmentController::class, 'store']); // Crear una nueva cita
         Route::put('/appointments/{appointment}', [AppointmentController::class, 'update']); // Actualizar una cita existente
         Route::put('appointments/{appointment}/status', [AppointmentController::class, 'updateStatus']); //Actualizar estatus de la cita
-         Route::delete('/appointments/{appointment}', [AppointmentController::class, 'destroy']); // Eliminar una cita
+        Route::delete('/appointments/{appointment}', [AppointmentController::class, 'destroy']); // Eliminar una cita
 
         /* 📌 SERVICIOS (Services) */
         Route::post('/servicios', [ServiceController::class, 'store']);
@@ -83,15 +83,15 @@ Route::middleware('auth:sanctum')->group(function () {
         /* 📌 DESPACHOS (Dispatches) */
         Route::post('/barber-dispatch', [BarberDispatchController::class, 'store']);
         Route::put('/barber-dispatch/{dispatch}', [BarberDispatchController::class, 'update']);
-      
+
         /* 📌 TIPS DE CUIDADO (Care Tips) */
         Route::post('/care-tips', [CareTipController::class, 'store']); // Crear un tip
         Route::put('/care-tips/{careTip}', [CareTipController::class, 'update']); // Actualizar un tip
         Route::delete('/care-tips/{careTip}', [CareTipController::class, 'destroy']); // Eliminar un tip
 
+        /* 📌 USUARIOS (Users) */
+        Route::post('/change-password', [AuthController::class, 'changePassword']);
     });
-
-
 });
 
 
