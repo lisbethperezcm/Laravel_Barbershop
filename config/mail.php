@@ -35,12 +35,12 @@ return [
 
     'mailers' => [
         //Produccion 
-       'resend' => [
+       /*'resend' => [
             'transport' => 'resend',
-        ],
+        ],*/
 
         //Desarrollo
-       /* 
+        
         'smtp' => [
             'transport' => 'smtp',
             'url' => env('MAIL_URL'),
@@ -52,7 +52,7 @@ return [
             'timeout' => null,
             'local_domain' => env('MAIL_EHLO_DOMAIN'),
           
-        ],*/
+        ],
 
         'ses' => [
             'transport' => 'ses',
