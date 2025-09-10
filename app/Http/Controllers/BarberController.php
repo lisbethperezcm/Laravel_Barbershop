@@ -88,17 +88,16 @@ class BarberController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request)
+    public function update(Request $request, Barber $barber)
     {
         // Cargar barbero con relaciones
-        $barber = Barber::with(['person.user', 'commission'])->findOrFail($request->input('barber_id'));
+        $barber = Barber::with(['person.user', 'commission'])->findOrFail($barber->id);
         $person = $barber->person;
         $user   = $person?->user;
         $commission = $barber->commission;
 
         //Validación 
         $validated = $request->validate([
-            'barber_id'    => 'required|integer',
             // Barber
             'status'       => 'sometimes|in:active,inactive',
             'lunch_start'  => 'sometimes|date_format:H:i:s|nullable',
@@ -108,7 +107,7 @@ class BarberController extends Controller
             'last_name'       => 'sometimes|string|max:100|nullable',
             'document_number' => 'sometimes|string|max:20|nullable',
             'phone_number'    => 'sometimes|string|max:20|nullable',
-            'address'         => 'sometimes|string|max:255|nullable',
+            'address'         => 'sometimes|string|max:60|nullable',
             // User (Email)
             'email' => [
                 'sometimes',

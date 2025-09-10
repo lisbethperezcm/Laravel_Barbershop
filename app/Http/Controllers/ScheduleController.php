@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ScheduleRequest;
 use App\Models\Appointment;
 use Carbon\Carbon;
 use App\Models\Schedule;
 use Illuminate\Http\Request;
 use App\Http\Resources\ScheduleResource;
+use App\Models\Barber;
 
 class ScheduleController extends Controller
 {
@@ -44,7 +46,7 @@ class ScheduleController extends Controller
             ], 401);
         }
 
-        
+
         //
         $barberId = $request->barber_id ?? ($user->person->barber->id ?? null);
         $date = $request->date;
@@ -124,45 +126,45 @@ class ScheduleController extends Controller
     }
 
 
-   public function toggleStatus(Request $request)
-{ 
-    $id = $request->input('id');
-    $schedule = Schedule::find($id);
+    public function toggleStatus(Request $request)
+    {
+        $id = $request->input('id');
+        $schedule = Schedule::find($id);
 
-    if (!$schedule) {
-        return response()->json([
-            'message' => 'Horario no encontrado.',
-            'errorCode' => '404'
-        ], 404);
-    }
-
-    // Solo validar conflictos si el horario está ACTIVO y se va a inactivar
-    if ($schedule->status_id == 1) {
-        $mysqlDayId = ($schedule->day_id == 7) ? 1 : $schedule->day_id + 1;
-        $hasConflict = Appointment::where('barber_id', $schedule->barber_id)
-            ->where('status_id', 3)
-            ->whereDate('appointment_date', '>', now()->toDateString())
-            ->whereRaw('DAYOFWEEK(appointment_date) = ?', [$mysqlDayId])
-            ->exists();
-
-        if ($hasConflict) {
+        if (!$schedule) {
             return response()->json([
-                'message' => 'No puedes inactivar este horario porque el barbero tiene citas futuras en ese día. Modifica o cancela esas citas primero.',
-                'errorCode' => '409'
-            ], 409);
+                'message' => 'Horario no encontrado.',
+                'errorCode' => '404'
+            ], 404);
         }
+
+        // Solo validar conflictos si el horario está ACTIVO y se va a inactivar
+        if ($schedule->status_id == 1) {
+            $mysqlDayId = ($schedule->day_id == 7) ? 1 : $schedule->day_id + 1;
+            $hasConflict = Appointment::where('barber_id', $schedule->barber_id)
+                ->where('status_id', 3)
+                ->whereDate('appointment_date', '>', now()->toDateString())
+                ->whereRaw('DAYOFWEEK(appointment_date) = ?', [$mysqlDayId])
+                ->exists();
+
+            if ($hasConflict) {
+                return response()->json([
+                    'message' => 'No puedes inactivar este horario porque el barbero tiene citas futuras en ese día. Modifica o cancela esas citas primero.',
+                    'errorCode' => '409'
+                ], 409);
+            }
+        }
+
+        // Cambia el estado: 1 = activo, 2 = inactivo
+        $schedule->status_id = ($schedule->status_id == 1) ? 2 : 1;
+        $schedule->save();
+
+        return response()->json([
+            'message' => 'Estado del horario actualizado exitosamente.',
+            'data' => $schedule,
+            'errorCode' => '200'
+        ], 200);
     }
-
-    // Cambia el estado: 1 = activo, 2 = inactivo
-    $schedule->status_id = ($schedule->status_id == 1) ? 2 : 1;
-    $schedule->save();
-
-    return response()->json([
-        'message' => 'Estado del horario actualizado exitosamente.',
-        'data' => $schedule,
-        'errorCode' => '200'
-    ], 200);
-}
 
     /**
      * Store a newly created resource in storage.
@@ -183,10 +185,45 @@ class ScheduleController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Schedule $schedule)
+    public function update(ScheduleRequest $request, Barber $barber)
     {
-        //
+
+        $barber = Barber::findOrFail($barber->id);
+        $schedule = $barber->schedule;
+        // Validación ligera basada en lo que aceptamos actualizar  
+
+
+      
+
+
+        if ($request->filled('schedules')) {
+            foreach ($request->input('schedules') as $sch) {
+                Schedule::updateOrCreate(
+                    [
+                        'barber_id' => $barber->id,
+                        'day_id'    => $sch['day_id'],
+                    ],
+                    [
+                        'start_time' => $sch['start_time'],
+                        'end_time'   => $sch['end_time'],
+                        'status'     => $sch['status'] ?? 'active',
+                    ]
+                );
+            }
+        }
+
+        // Devolver los horarios del barbero actualizados
+    $barber->load(['schedules' => fn ($q) => $q->orderBy('day_id')]);
+
+
+
+        return response()->json([
+            'message'   => 'Horarios actualizados exitosamente',
+            'data' => ScheduleResource::collection($barber->schedules),
+            'errorCode' => '200',
+        ], 200);
     }
+
 
     /**
      * Remove the specified resource from storage.

@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ProductRequest;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use App\Http\Requests\ProductRequest;
+use App\Http\Requests\EditProductRequest;
 
 class ProductController extends Controller
 {
@@ -59,10 +60,31 @@ public function index(Request $request)
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Product $product)
-    {
-        //
+    public function update(EditProductRequest $request, Product $product)
+{
+
+
+        $product = Product::findOrFail($product->id);
+    // Validar datos y excluir stock
+    $validated = $request->safe()->except(['stock']);
+
+    if ($request->has('stock')) {
+        return response()->json([
+            'message' => 'El stock no es posible actualizar en esta funcionalidad. Usa entradas/salidas/devoluciones.',
+            'errorCode' => 422
+        ], 422);
     }
+
+    // Update directo
+    $product->update($validated);
+
+    return response()->json([
+        'message' => 'Producto actualizado exitosamente.',
+        'data' => $product->fresh(),
+        'errorCode' => 200
+    ], 200);
+}
+
 
     /**
      * Remove the specified resource from storage.
@@ -75,5 +97,25 @@ public function index(Request $request)
             'message' => 'Producto eliminado correctamente',
             'errorCode' => 200
         ]);
+    }
+ /** */
+
+    /**
+     * Obtener productos con bajo stock.
+     */
+    public function getLowStockProducts(Request $request)
+    {
+        // Umbral configurable (por defecto 5)
+        $threshold = $request->input('threshold', 5);
+
+        $products = Product::where('stock', '<=', $threshold)
+            ->orderBy('stock', 'asc')
+            ->select('id', 'name', 'stock')
+            ->get();
+
+        return response()->json([
+            'data' => $products,
+            'errorCode' => '200'
+        ], 200);
     }
 }
