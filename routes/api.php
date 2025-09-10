@@ -83,7 +83,7 @@ Route::middleware('auth:sanctum')->group(function () {
         /* 📌 DESPACHOS (Dispatches) */
         Route::post('/barber-dispatch', [BarberDispatchController::class, 'store']);
         Route::put('/barber-dispatch/{dispatch}', [BarberDispatchController::class, 'update']);
-
+      
         /* 📌 TIPS DE CUIDADO (Care Tips) */
         Route::post('/care-tips', [CareTipController::class, 'store']); // Crear un tip
         Route::put('/care-tips/{careTip}', [CareTipController::class, 'update']); // Actualizar un tip
@@ -91,6 +91,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
         /* 📌 USUARIOS (Users) */
         Route::post('/change-password', [AuthController::class, 'changePassword']);
+
+        /* 📌 BARBEROS (Barbers) */
+        Route::put('/barbers/{barber}', [BarberController::class, 'update']); // Actualizar un barbero
+
+        /* 📌 CLIENTES (Clients) */
+        Route::put('/clients', [ClientController::class, 'update']); // Actualizar un cliente
     });
 });
 
@@ -136,6 +142,7 @@ Route::get('/servicios', [ServiceController::class, 'index']); //Obtener servici
 /* 📌 DESPACHOS (Dispatches) */
 Route::get('/barber-dispatch', [BarberDispatchController::class, 'index']);
 Route::get('/barber-dispatch/{dispatch}', [BarberDispatchController::class, 'show']);
+Route::get('/dispatch-by-barber', [BarberDispatchController::class, 'getDispatchByBarber']);
 Route::post('/barbers/report', [BarberController::class, 'calculateReport']);
 
 

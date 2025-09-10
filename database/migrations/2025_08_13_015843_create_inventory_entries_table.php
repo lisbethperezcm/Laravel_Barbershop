@@ -13,8 +13,10 @@ return new class extends Migration
     {
         Schema::create('inventory_entries', function (Blueprint $table) {
             $table->id();
+            $table->string('supplier')->nullable(); // Proveedor de la entrada
             $table->string('entry_type')->default('Compra'); // Tipo de entrada: Compra, Devolución, Ajuste, etc.
             $table->date('entry_date'); // Fecha de la entrada
+            $table->string('invoice_number')->nullable(); // Número de la factura
             $table->string('note')->nullable(); // Nota u observaciones
             $table->decimal('total', 10, 2)->default(0); // Total calculado
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');

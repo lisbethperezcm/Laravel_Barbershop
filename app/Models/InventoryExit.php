@@ -25,7 +25,21 @@ class InventoryExit extends Model
         'updated_at'=> 'datetime'
     ];
 
-    
+     //Funcion para filtrar la fecha de las salidas de inventario 
+    public function scopeDateRange($query, ?string $start, ?string $end)
+    {
+        if ($start && $end) {
+            return $query->whereBetween('exit_date', [$start, $end]);
+        }
+        if ($start) {
+            return $query->whereDate('exit_date', '>=', $start);
+        }
+        if ($end) {
+            return $query->whereDate('exit_date', '<=', $end);
+        }
+        return $query;
+    }
+
 
      // Relación con el detalle de salida de inventario 
 

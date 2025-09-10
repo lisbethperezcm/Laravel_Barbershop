@@ -9,7 +9,7 @@ class BarberDispatch extends Model
 {
     use HasFactory;
 
-    protected $table = 'barber_dispatches'; 
+    protected $table = 'barber_dispatches';
 
     protected $fillable = [
         'exit_id',
@@ -19,7 +19,20 @@ class BarberDispatch extends Model
         'created_by',
         'updated_by',
     ];
-
+    //Funcion para filtrar la fecha de los despachos de barberos
+    public function scopeDateRange($query, ?string $start, ?string $end)
+    {
+        if ($start && $end) {
+            return $query->whereBetween('dispatch_date', [$start, $end]);
+        }
+        if ($start) {
+            return $query->whereDate('dispatch_date', '>=', $start);
+        }
+        if ($end) {
+            return $query->whereDate('dispatch_date', '<=', $end);
+        }
+        return $query;
+    }
 
     // Relación con la salida de inventario
     public function inventoryExit()

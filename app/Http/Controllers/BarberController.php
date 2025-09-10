@@ -6,8 +6,10 @@ use App\Models\User;
 use App\Models\Barber;
 use App\Models\Person;
 use App\Models\Schedule;
+use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
 use App\Helpers\GeneralHelper;
+use Illuminate\Validation\Rule;
 use App\Models\BarberCommission;
 use Illuminate\Support\Facades\DB;
 use App\Http\Resources\BarberResource;
@@ -33,7 +35,7 @@ class BarberController extends Controller
             });
         }
 
-        $barbers= $barbersQuery->get();
+        $barbers = $barbersQuery->get();
         //colección de barberos
         return response()->json([
             'data' => new   BarberCollection($barbers),
@@ -86,9 +88,78 @@ class BarberController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Barber $barber)
+    public function update(Request $request)
     {
-        //
+        // Cargar barbero con relaciones
+        $barber = Barber::with(['person.user', 'commission'])->findOrFail($request->input('barber_id'));
+        $person = $barber->person;
+        $user   = $person?->user;
+        $commission = $barber->commission;
+
+        //Validación 
+        $validated = $request->validate([
+            'barber_id'    => 'required|integer',
+            // Barber
+            'status'       => 'sometimes|in:active,inactive',
+            'lunch_start'  => 'sometimes|date_format:H:i:s|nullable',
+            'lunch_end'    => 'sometimes|date_format:H:i:s|nullable',
+            // Person
+            'first_name'      => 'sometimes|string|max:100|nullable',
+            'last_name'       => 'sometimes|string|max:100|nullable',
+            'document_number' => 'sometimes|string|max:20|nullable',
+            'phone_number'    => 'sometimes|string|max:20|nullable',
+            'address'         => 'sometimes|string|max:255|nullable',
+            // User (Email)
+            'email' => [
+                'sometimes',
+                'nullable',
+                'email',
+                'max:255',
+                $user ? Rule::unique('users', 'email')->ignore($user->id) : Rule::unique('users', 'email'),
+            ],
+            // Comisión (BarberCommission)
+            'commission' => 'sometimes|integer|min:0|max:100',
+        ]);
+
+        //Separar datos por modelo
+        $barberKeys = ['status', 'lunch_start', 'lunch_end']; 
+        $barberData = Arr::only($validated, $barberKeys);
+
+        $personKeys = ['first_name', 'last_name', 'document_number', 'phone_number', 'address'];
+        $personData = Arr::only($validated, $personKeys);
+
+        $userData   = Arr::only($validated, ['email']);
+
+       $commissionData = $validated['commission'] ?? null;
+
+
+        //Actualizar modelos si hay datos
+        if (!empty($barberData)) {
+            $barber->update($barberData); 
+        }
+
+        if (!empty($personData) && $person) {
+            $person->update($personData);
+        }
+
+        if (!empty($userData) && $user) {
+            $user->update($userData);
+        }
+
+        if (!empty($commissionData) && $commission) {
+
+            $commission->update(['current_percentage' => intval($commissionData)]);
+        }
+
+
+
+        //Respuesta con datos actualizados
+        $barber->refresh()->load(['person.user', 'commission']);
+
+        return response()->json([
+            'data' => new BarberResource($barber),
+            'errorCode' => '200',
+        ], 200);
     }
 
 
