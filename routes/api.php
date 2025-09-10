@@ -49,6 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
     /* 📌 HORARIOS (Schedules) */
     Route::post('/barbers/availableSlots', [ScheduleController::class, 'getAvailableSlots']); // Obtener horarios disponibles de los barberos
     Route::get('/barbers/schedules', [ScheduleController::class, 'index']);
+ 
 
     // --- Rutas CON transacción (crear/editar/eliminar)
 
@@ -67,7 +68,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
         /* 📌 PRODUCTOS (Products) */
         Route::post('/products', [ProductController::class, 'store']); // Crear un nuevo producto
-        Route::delete('/products', [ProductController::class, 'destroy']); // eliminar un producto
+        Route::put('/products/{product}', [ProductController::class, 'update']); // Actualizar un producto existente
+        Route::delete('/products/{product}', [ProductController::class, 'destroy']); // eliminar un producto
 
         /* 📌 INVENTARIO (Inventory) */
         Route::post('/inventory-exits', [InventoryExitsController::class, 'store']);
@@ -94,6 +96,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
         /* 📌 BARBEROS (Barbers) */
         Route::put('/barbers/{barber}', [BarberController::class, 'update']); // Actualizar un barbero
+
+         /* 📌 HORARIOS (Schedules) */
+           Route::put('/barbers/schedules/{barber}', [ScheduleController::class, 'update']); //Actualizar horario de barbero
 
         /* 📌 CLIENTES (Clients) */
         Route::put('/clients', [ClientController::class, 'update']); // Actualizar un cliente
@@ -134,6 +139,7 @@ Route::get('/barbers-appointments', [AppointmentController::class, 'getAppointme
 
 // 📌 **PRODUCTOS (Products)**
 Route::get('/products', [ProductController::class, 'index']); // Listar todos los productos
+Route::get('/products-low-stock', [ProductController::class, 'getLowStockProducts']); // Listar productos con stock bajo
 
 // 📌 **SERVICIOS (Services)**
 Route::get('/servicios/{service}', [ServiceController::class, 'show']); //getServiciosById
