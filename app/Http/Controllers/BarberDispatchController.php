@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\GetInventoryRequest;
 use App\Models\Barber;
 use Illuminate\Http\Request;
 use App\Models\InventoryExit;
@@ -20,14 +21,54 @@ class BarberDispatchController extends Controller
         $this->inventoryExitService = $inventoryExitService;
     }
 
-    public function index()
+    public function index(GetInventoryRequest $request)
     {
-        $dispatches = BarberDispatch::with('barber')->get();
+
+
+        $start    = $request->start_date ?? null;
+        $end      = $request->end_date ?? null;
+
+
+        $dispatches = BarberDispatch::with('barber')
+            ->dateRange($start, $end)
+            ->orderBy('dispatch_date', 'desc')
+            ->get();
 
 
         //Retornar el listado de despachos formateada con AppointmentCollection
         return response()->json([
             'data' => new  BarberDispatchCollection($dispatches),
+            'errorCode' => '200'
+        ], 200);
+    }
+
+
+    public function getDispatchByBarber(Request $request)
+    {
+
+        $validated = $request->validate([
+            'barber_id'    => 'required|integer|exists:barbers,id',
+        ]);
+
+        $barberId = $request->input('barber_id');
+
+        // Buscar todos los despachos asociados a un barbero específico
+        $dispatches = BarberDispatch::with('barber')
+            ->where('barber_id', $barberId)
+            ->orderBy('dispatch_date', 'desc')
+            ->get();
+
+        if ($dispatches->isEmpty()) {
+            return response()->json([
+                'data' => [],
+                'message' => 'No se encontraron despachos para este barbero.',
+                'errorCode' => '200'
+            ], 200);
+        }
+
+        // Retornar el listado de despachos del barbero formateado con BarberDispatchCollection
+        return response()->json([
+            'data' => new BarberDispatchCollection($dispatches),
             'errorCode' => '200'
         ], 200);
     }

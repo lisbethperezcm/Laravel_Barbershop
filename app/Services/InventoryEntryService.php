@@ -20,6 +20,7 @@ class InventoryEntryService
             $inventoryEntry = InventoryEntry::create([
                 'entry_type' => $data['entry_type'] ?? 'Compra',
                 'entry_date' => $data['entry_date'],
+                'invoice_number' => $data['invoice_number'] ?? null,
                 'note'       => $data['note'] ?? null,
                 'total'      => 0, // se recalcula luego
             ]);
@@ -53,6 +54,7 @@ class InventoryEntryService
                 'entry_type' => $data['entry_type'] ?? $inventoryEntry->entry_type,
                 'entry_date' => $data['entry_date'] ?? $inventoryEntry->entry_date,
                 'note'       => $data['note']       ?? $inventoryEntry->note,
+                'invoice_number' => $data['invoice_number'] ?? $inventoryEntry->invoice_number,
             ]);
 
             // 2) Sincronizar detalles (suma stock: +1)

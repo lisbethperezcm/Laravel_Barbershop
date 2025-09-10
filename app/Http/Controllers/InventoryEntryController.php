@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\InventoryEntry;
 use App\Http\Controllers\Controller;
 use App\Services\InventoryEntryService;
+use App\Http\Requests\GetInventoryRequest;
 use App\Http\Requests\InventoryEntryRequest;
 
 class InventoryEntryController extends Controller
@@ -20,9 +21,15 @@ class InventoryEntryController extends Controller
     /**
      * Listado de entradas de inventario.
      */
-    public function index()
+    public function index(GetInventoryRequest $request)
     {
-        $inventoryEntries = InventoryEntry::with(['createdBy.person', 'entryDetails.product']) // createdBy es opcional si lo tienes
+        $start    = $request->start_date ?? null;
+        $end      = $request->end_date ?? null;
+        $invoiceNumber = $request->invoice_number ?? null;
+
+        $inventoryEntries = InventoryEntry::with(['createdBy.person', 'entryDetails.product'])
+            ->dateRange($start, $end)
+            ->invoiceNumber($invoiceNumber)
             ->orderBy('entry_date', 'desc')
             ->get();
 
@@ -42,8 +49,10 @@ class InventoryEntryController extends Controller
         $inventoryEntry = $this->inventoryEntryService->createInventoryEntry([
             'entry_type' => $request->entry_type ?? 'Compra',
             'entry_date' => $request->entry_date,
+            'invoice_number' => $request->invoice_number ?? null,
             'note'       => $request->note ?? null,
             'products'   => $request->input('products', []), // siempre array
+
         ]);
 
         return response()->json([
@@ -72,10 +81,5 @@ class InventoryEntryController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
-    {
-         
-    }
-
-    
+    public function destroy(string $id) {}
 }

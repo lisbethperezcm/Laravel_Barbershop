@@ -10,6 +10,7 @@ use App\Models\InventoryExit;
 use function Laravel\Prompts\error;
 
 use App\Services\InventoryExitService;
+use App\Http\Requests\GetInventoryRequest;
 use App\Http\Requests\InventoryExistRequest;
 use App\Http\Resources\InventoryExitCollection;
 
@@ -21,11 +22,20 @@ class InventoryExitsController extends Controller
     {
         $this->inventoryExitService = $inventoryExitService;
     }
-    public function index() {
 
-      $inventoryExits = InventoryExit::with(['createdBy.person', 'exitDetails.product']) // createdBy es opcional si lo tienes
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(GetInventoryRequest $request)
+    {
+        $start    = $request->start_date ?? null;
+        $end      = $request->end_date ?? null;
+        // Obtener las salidas de inventario con los filtros aplicados
+        $inventoryExits = InventoryExit::with(['createdBy.person', 'exitDetails.product']) // createdBy es opcional si lo tienes
+            ->dateRange($start, $end)
             ->orderBy('exit_date', 'desc')
             ->get();
+
         return response()->json([
             'data'      => new InventoryExitCollection($inventoryExits),
             'errorCode' => 200,
@@ -40,7 +50,7 @@ class InventoryExitsController extends Controller
     {
         //Obtener el usuario autenticado 
         $user = auth()->user();
-        
+
         // Crear la salida de inventario
         $inventoryExit = $this->inventoryExitService->createInventoryExit([
             'exit_type' => $request->exit_type,

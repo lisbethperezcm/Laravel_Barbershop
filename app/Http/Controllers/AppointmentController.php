@@ -269,9 +269,9 @@ class AppointmentController extends Controller
 
     $newStatusId = (int) $data['status'];
     $currentName = $appointment->status->name;        // p.ej. 'Completado', 'Cancelado'
-    $targetStatus = Status::findOrFail($newStatusId); // para comparar por nombre de forma consistente
+    $targetStatus = Status::findOrFail($newStatusId); 
 
-    // 🔒 Reglas de negocio de cambio de estado
+    // Reglas de negocio de cambio de estado
     if ($currentName === 'Completado') {
         return response()->json([
             'message' => 'No puedes cambiar el estado de una cita que ya está completada.'
