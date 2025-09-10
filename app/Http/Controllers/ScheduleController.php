@@ -218,6 +218,7 @@ class ScheduleController extends Controller
 
 
         return response()->json([
+            'message'   => 'Horarios actualizados exitosamente',
             'data' => ScheduleResource::collection($barber->schedules),
             'errorCode' => '200',
         ], 200);
