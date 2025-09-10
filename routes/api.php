@@ -91,6 +91,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
         /* 📌 USUARIOS (Users) */
         Route::post('/change-password', [AuthController::class, 'changePassword']);
+
+        /* 📌 BARBEROS (Barbers) */
+        Route::put('/barbers/{barber}', [BarberController::class, 'update']); // Actualizar un barbero
+
+        /* 📌 CLIENTES (Clients) */
+        Route::put('/clients', [ClientController::class, 'update']); // Actualizar un cliente
     });
 });
 
