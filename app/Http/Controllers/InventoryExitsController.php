@@ -82,7 +82,19 @@ class InventoryExitsController extends Controller
      */
     public function update(Request $request, InventoryExit $inventoryExit)
     {
-        //
+        $user = auth()->user();
+        $inventoryExit = $this->inventoryExitService->updateInventoryExit($inventoryExit, [
+            'exit_date' => $request->input('exit_date'),
+            'note' => $request->input('note'),
+            'products' => $request->has('products') ? $request->input('products') : null,
+        ]);
+
+        return response()->json([
+            'message'   => 'Salida de inventario actualizada exitosamente',
+            'data'      => $inventoryExit,
+            'errorCode' => 200,
+        ], 200);
+
     }
 
     /**

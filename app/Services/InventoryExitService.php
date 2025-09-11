@@ -14,10 +14,10 @@ class InventoryExitService
     /**
      * Crear una salida de inventario con detalles de productos.
      */
-    public function createInventoryExit(array $data)
+    public function createInventoryExit(array $data) : InventoryExit
     {
 
-        // 1) Crear cabecera sin total
+        //Crear cabecera sin total
         $inventoryExit = InventoryExit::create([
             'exit_type' => $data['exit_type'] ?? 'Despacho a Barbero',
             'exit_date' => $data['exit_date'],
@@ -25,7 +25,7 @@ class InventoryExitService
             'total'     => 0, // se recalcula luego
         ]);
 
-        // 2) Sincronizar detalles (resta stock: -1)
+        // Sincronizar detalles (resta stock: -1)
         $this->processProductDetails(
             movement: $inventoryExit,
             productLines: $data['products'] ?? [],
@@ -34,7 +34,7 @@ class InventoryExitService
             getUnitCost: null // usa el unit_cost de la línea o del producto si no viene
         );
 
-        // 3) Recalcular total desde la BD
+        //Recalcular total desde la BD
         $total = $this->calculateDocumentTotal($inventoryExit, 'exitDetails');
         $inventoryExit->update(['total' => $total]);
 
@@ -44,7 +44,7 @@ class InventoryExitService
     /**
      * Actualizar una salida de inventario con detalles de productos.
      */
-    public function updateInventoryExit(InventoryExit $inventoryExit, array $data)
+    public function updateInventoryExit(InventoryExit $inventoryExit, array $data) : InventoryExit
     {
 
         // Obtener el usuario autenticado (para el despacho asociado)
@@ -55,14 +55,19 @@ class InventoryExitService
             $data['exit_date'] = $data['dispatch_date'];
         }
 
-        // 1) Actualizar cabecera (sin tocar total aún)
+         if(!isset($data['products'])) {
+                // No se actualizan los productos
+                return $inventoryExit->load('exitDetails.product');
+            }
+
+        //Actualizar cabecera (sin tocar total aún)
         $inventoryExit->update([
             'exit_type' => $data['exit_type'] ?? $inventoryExit->exit_type,
             'exit_date' => $data['exit_date'] ?? $inventoryExit->exit_date,
             'note'      => $data['note']      ?? $inventoryExit->note,
         ]);
 
-        // 2) Sincronizar detalles con el trait (resta stock: -1)
+        //Sincronizar detalles con el trait (resta stock: -1)
         $this->processProductDetails(
             movement: $inventoryExit,
             productLines: $data['products'] ?? [],
@@ -71,11 +76,11 @@ class InventoryExitService
             getUnitCost: null // o pasa un resolver para forzar el unit_cost del producto
         );
 
-        // 3) Recalcular total desde la BD
+        //Recalcular total desde la BD
         $total = $this->calculateDocumentTotal($inventoryExit, 'exitDetails');
         $inventoryExit->update(['total' => $total]);
 
-        // 4) Actualizar despacho asociado (si existe)
+        // Actualizar despacho asociado (si existe)
         $barberDispatch = BarberDispatch::where('exit_id', $inventoryExit->id)->first();
         if ($barberDispatch) {
             $barberDispatch->update(['updated_by' => $userId, 'updated_at' => now()]);
@@ -93,7 +98,7 @@ class InventoryExitService
         $this->softDeleteMovementAndRevertStock(
             $inventoryExit,   // La salida a eliminar
             'exitDetails',    // Relación en el modelo
-            -1                // Salidas restan stock originalmente
+            +1                // Salidas suma el stock al revertir
         );
         return $inventoryExit->fresh();
     }
