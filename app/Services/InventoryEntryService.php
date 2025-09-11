@@ -16,7 +16,7 @@ class InventoryEntryService
     public function createInventoryEntry(array $data): InventoryEntry
     {
         
-            // 1) Crear cabecera sin total
+            //Crear cabecera sin total
             $inventoryEntry = InventoryEntry::create([
                 'entry_type' => $data['entry_type'] ?? 'Compra',
                 'entry_date' => $data['entry_date'],
@@ -25,7 +25,7 @@ class InventoryEntryService
                 'total'      => 0, // se recalcula luego
             ]);
 
-            // 2) Sincronizar detalles (suma stock: +1)
+            //Sincronizar detalles (suma stock: +1)
             $this->processProductDetails(
                 movement:        $inventoryEntry,
                 productLines:    $data['products'] ?? [],
@@ -34,7 +34,7 @@ class InventoryEntryService
                 getUnitCost:     null // usa unit_cost del payload o del producto si no viene
             );
 
-            // 3) Recalcular total desde la BD
+            //Recalcular total desde la BD
             $total = $this->calculateDocumentTotal($inventoryEntry, 'entryDetails');
             $inventoryEntry->update(['total' => $total]);
 
@@ -49,7 +49,7 @@ class InventoryEntryService
     {
         
 
-            // 1) Actualizar cabecera (excepto total)
+            // Actualizar cabecera (excepto total)
             $inventoryEntry->update([
                 'entry_type' => $data['entry_type'] ?? $inventoryEntry->entry_type,
                 'entry_date' => $data['entry_date'] ?? $inventoryEntry->entry_date,
@@ -61,7 +61,7 @@ class InventoryEntryService
                 // No se actualizan los productos
                 return $inventoryEntry->load('entryDetails.product');
             }
-            // 2) Sincronizar detalles (suma stock: +1)
+            //Sincronizar detalles (suma stock: +1)
             $this->processProductDetails(
                 movement:        $inventoryEntry,
                 productLines:    $data['products'] ?? [],
@@ -70,11 +70,24 @@ class InventoryEntryService
                 getUnitCost:     null // usa unit_cost del payload o del producto si no viene
             );
 
-            // 3) Recalcular total desde la BD
+            //Recalcular total desde la BD
             $total = $this->calculateDocumentTotal($inventoryEntry, 'entryDetails');
             $inventoryEntry->update(['total' => $total]);
 
             return $inventoryEntry;
         
+    }
+       /**
+     * Elimina una entrada de inventario.
+     */
+    public function deleteInventoryEntry($inventoryEntry): InventoryEntry
+    {
+        // Reutiliza el método del trait para revertir y borrar
+        $this->softDeleteMovementAndRevertStock(
+            $inventoryEntry,   // La entrada a eliminar
+            'entryDetails',    // Relación en el modelo
+            -1                // Entrada resta el stock al revertir
+        );
+        return $inventoryEntry->fresh();
     }
 }

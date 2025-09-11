@@ -14,7 +14,7 @@ trait HandlesInventoryLines
      * @param  string        $detailsRelation  Relación en la cabecera ('invoiceDetails', 'entryDetails', 'exitDetails')
      * @param  int           $stockDirection   -1 = resta stock (ventas/salidas), +1 = suma stock (compras/devoluciones)
      * @param  callable|null $getUnitCost      fn(Product $product, array $line): string|float (opcional)
-     * @param  string        $priceColumn      Nombre de la columna de precio (opcional)
+     * @param  string        $priceColumn      Nombre de la columna de precio (por defecto 'unit_cost')
      */
     protected function processProductDetails(
         $movement,
@@ -35,14 +35,13 @@ trait HandlesInventoryLines
         foreach ($productLines as $row) {
             $productId = $row['product_id'] ?? null;
             if (!$productId) {
-                // si no viene product_id, ignoramos la línea
-                continue;
+                continue; // línea inválida sin product_id
             }
 
             $seenProductIds[] = (int) $productId;
 
             if (isset($byProduct[$productId])) {
-                // UPDATE por product_id (mapea al detail_id existente)
+                // UPDATE por product_id
                 $detailId = (int) $byProduct[$productId];
 
                 $this->_updateDetail(
@@ -67,7 +66,7 @@ trait HandlesInventoryLines
             }
         }
 
-        // ELIMINAR: cualquier detalle cuyo product_id no vino en el payload
+        // ELIMINAR detalles cuyo product_id no vino en el payload
         if (!empty($byProduct)) {
             $existingProductIds = array_map('intval', array_keys($byProduct));
             $seenProductIds     = array_values(array_unique(array_map('intval', $seenProductIds)));
@@ -83,7 +82,6 @@ trait HandlesInventoryLines
 
     /**
      * Calcula el total sumando (unit_cost * quantity) desde los detalles actuales.
-     * Devuelve string si hay BCMath; si no, float redondeado.
      */
     protected function calculateDocumentTotal($movement, string $detailsRelation): string|float
     {
@@ -103,13 +101,12 @@ trait HandlesInventoryLines
 
     /**
      * Elimina el movimiento y revierte el stock de sus detalles (soft delete si aplica).
+     * NOTA: Para revertir una salida (stockDirection = -1), aquí se suma stock.
+     *       Para revertir una entrada (stockDirection = +1), aquí se resta stock.
      */
     protected function softDeleteMovementAndRevertStock($movement, string $detailsRelation, int $stockDirection): void
     {
         $movement->{$detailsRelation}->each(function ($detail) use ($stockDirection) {
-            // Revertir:
-            // Entrada (+1) → revertir = -cantidad
-            // Salida/Factura (-1) → revertir = +cantidad
             $this->_applyStock($detail->product, $detail->quantity * ($stockDirection * -1));
             $detail->delete();
         });
@@ -120,7 +117,7 @@ trait HandlesInventoryLines
     // ================== HELPERS ==================
 
     /**
-     * Helper: crear detalle y ajustar stock
+     * Crear detalle y ajustar stock.
      */
     protected function _createDetail(
         $movement,
@@ -135,9 +132,9 @@ trait HandlesInventoryLines
             return;
         }
 
-        $unitCost = $this->_resolveUnitCost($product, $row, null, $getUnitCost);
+        // Resolver costo: payload > callable > producto
+        $unitCost = $this->_resolveUnitCost($product, $row, null, $getUnitCost, $priceColumn);
 
-        // Crear vía relación (la FK se asigna según la relación definida en el modelo)
         $payload = [
             'product_id' => $product->id,
             'quantity'   => (int) ($row['quantity'] ?? 0),
@@ -154,8 +151,8 @@ trait HandlesInventoryLines
     }
 
     /**
-     * Helper: actualizar detalle (revierte stock previo, actualiza qty/costo y reaplica stock).
-     * Mantiene exactamente tu comportamiento original (NO cambia product_id).
+     * Actualizar detalle (revierte stock previo, actualiza qty/costo y reaplica stock).
+     * Mantiene el costo guardado en el detalle si no se envía uno nuevo en el payload.
      */
     protected function _updateDetail(
         $movement,
@@ -174,10 +171,10 @@ trait HandlesInventoryLines
         // 1) Revertir stock previo de la línea
         $this->_applyStock($detail->product, $detail->quantity * ($stockDirection * -1));
 
-        // 2) Resolver unit_cost (con el product del detalle, tal cual tu lógica)
-        $unitCost = $this->_resolveUnitCost($detail->product, $row, $detail, $getUnitCost);
+        // 2) Resolver costo con prioridad: payload > callable > costo guardado en el detalle > producto
+        $unitCost = $this->_resolveUnitCost($detail->product, $row, $detail, $getUnitCost, $priceColumn);
 
-        // 3) Actualizar línea (quantity / costos)
+        // 3) Actualizar línea
         $update = [
             'quantity'  => (int) ($row['quantity'] ?? 0),
             'unit_cost' => $unitCost,
@@ -193,7 +190,7 @@ trait HandlesInventoryLines
     }
 
     /**
-     * Helper: eliminar detalle y revertir stock.
+     * Eliminar detalle y revertir stock.
      */
     protected function _deleteDetail(
         $movement,
@@ -211,7 +208,7 @@ trait HandlesInventoryLines
     }
 
     /**
-     * Helper: aplicar delta al stock.
+     * Aplicar delta al stock.
      */
     protected function _applyStock(Product $product, int $delta): void
     {
@@ -222,26 +219,47 @@ trait HandlesInventoryLines
     }
 
     /**
-     * Helper: resolver unit_cost (callable > row['unit_cost'] > product->unit_cost).
+     * Resolver unit_cost de forma simple y eficiente:
+     * 1) Si hay callable, lo usamos.
+     * 2) Si viene en el payload (priceColumn o unit_cost), lo usamos.
+     * 3) Si existe detalle previo, usamos su costo almacenado (mantiene el costo histórico).
+     * 4) En último caso, usamos el unit_cost actual del producto.
      */
     protected function _resolveUnitCost(
         Product $product,
         array $row,
         $existingDetail = null,
-        ?callable $getUnitCost = null
+        ?callable $getUnitCost = null,
+        string $priceColumn = 'unit_cost'
     ): string|float {
-        $unit = $getUnitCost
-            ? $getUnitCost($product, $row)
-            : ($row['unit_cost'] ?? $product->unit_cost);
+        // 1) callable
+        if ($getUnitCost) {
+            $unit = $getUnitCost($product, $row);
+        } else {
+            // 2) payload
+            $unit = $row[$priceColumn] ?? $row['unit_cost'] ?? null;
+
+            if ($unit === null) {
+                // 3) costo guardado en el detalle
+                if ($existingDetail) {
+                    $unit = $existingDetail->{$priceColumn} ?? $existingDetail->unit_cost ?? null;
+                }
+            }
+
+            // 4) fallback: costo del producto
+            if ($unit === null) {
+                $unit = $product->{$priceColumn} ?? $product->unit_cost;
+            }
+        }
 
         // Normaliza a 2 decimales si hay BCMath; si no, float.
         return function_exists('bcadd')
             ? number_format((float) $unit, 2, '.', '')
             : (float) $unit;
-        }
+    }
 
     /**
-     * Helper: buscar producto o null.
+     * Buscar producto o null.
      */
     protected function _findProductOrNull($productId): ?Product
     {
