@@ -44,7 +44,7 @@ class InventoryEntryController extends Controller
      */
     public function store(InventoryEntryRequest $request) // o Request $request
     {
-        $user = auth()->user(); // si luego quieres registrar created_by
+        $user = auth()->user();
 
         $inventoryEntry = $this->inventoryEntryService->createInventoryEntry([
             'entry_type' => $request->entry_type ?? 'Compra',
@@ -61,21 +61,29 @@ class InventoryEntryController extends Controller
             'errorCode' => 201,
         ], 201);
     }
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
 
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(InventoryEntryRequest $request, InventoryEntry $inventoryEntry)
     {
-        //
+        $user = auth()->user();
+
+        $inventoryEntry = $this->inventoryEntryService->updateInventoryEntry($inventoryEntry, [
+
+            'entry_date'    => $request->input('entry_date'),
+            'invoice_number' => $request->input('invoice_number'),
+            'note'           => $request->input('note'),
+            'products'       => $request->has('products') ? $request->input('products') : null,
+
+        ]);
+
+        return response()->json([
+            'message'   => 'Entrada de inventario actualizada exitosamente',
+            'data'      => $inventoryEntry,
+            'errorCode' => 200,
+        ], 200);
     }
 
     /**

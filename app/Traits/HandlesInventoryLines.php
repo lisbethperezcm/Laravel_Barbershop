@@ -3,7 +3,6 @@
 namespace App\Traits;
 
 use App\Models\Product;
-use PhpParser\Node\Expr\Cast\String_;
 
 trait HandlesInventoryLines
 {
@@ -11,11 +10,11 @@ trait HandlesInventoryLines
      * Procesa líneas de productos (crear/editar/eliminar) y ajusta stock.
      *
      * @param  mixed         $movement         Cabecera: Factura/Entrada/Salida (modelo Eloquent)
-     * @param  array         $productLines     Líneas del payload (id?, product_id, quantity, unit_cost?)
+     * @param  array         $productLines     Líneas del payload (product_id, quantity, unit_cost?)
      * @param  string        $detailsRelation  Relación en la cabecera ('invoiceDetails', 'entryDetails', 'exitDetails')
      * @param  int           $stockDirection   -1 = resta stock (ventas/salidas), +1 = suma stock (compras/devoluciones)
      * @param  callable|null $getUnitCost      fn(Product $product, array $line): string|float (opcional)
-     * @param  string       $priceColumn      Nombre de la columna de precio (opcional)
+     * @param  string        $priceColumn      Nombre de la columna de precio (opcional)
      */
     protected function processProductDetails(
         $movement,
@@ -25,28 +24,38 @@ trait HandlesInventoryLines
         ?callable $getUnitCost = null,
         string $priceColumn = 'unit_cost'
     ): void {
-        // Mapa actual en BD: [detalle_id => product_id]
-        $existingDetails = $movement->{$detailsRelation}()
-            ->pluck('product_id', 'id')
+        // Indexar existentes: product_id => detail_id
+        $byProduct = $movement->{$detailsRelation}()
+            ->pluck('id', 'product_id')
             ->toArray();
 
-        // CREAR / ACTUALIZAR
-        foreach ($productLines as $row) {
-            $detailId = $row['id'] ?? null;
+        $seenProductIds = [];
 
-            if ($detailId && isset($existingDetails[$detailId])) {
-                // Actualizar detalle existente (misma lógica que ya tenías)
+        // CREAR / ACTUALIZAR según product_id
+        foreach ($productLines as $row) {
+            $productId = $row['product_id'] ?? null;
+            if (!$productId) {
+                // si no viene product_id, ignoramos la línea
+                continue;
+            }
+
+            $seenProductIds[] = (int) $productId;
+
+            if (isset($byProduct[$productId])) {
+                // UPDATE por product_id (mapea al detail_id existente)
+                $detailId = (int) $byProduct[$productId];
+
                 $this->_updateDetail(
                     $movement,
                     $detailsRelation,
-                    (int)$detailId,
+                    $detailId,
                     $row,
                     $stockDirection,
                     $getUnitCost,
                     $priceColumn
                 );
             } else {
-                // Crear nuevo detalle
+                // CREATE
                 $this->_createDetail(
                     $movement,
                     $detailsRelation,
@@ -58,27 +67,16 @@ trait HandlesInventoryLines
             }
         }
 
-        // ELIMINAR detalles que ya no vienen
-        $incomingDetailIds = collect($productLines)->pluck('id')->filter()->toArray();
+        // ELIMINAR: cualquier detalle cuyo product_id no vino en el payload
+        if (!empty($byProduct)) {
+            $existingProductIds = array_map('intval', array_keys($byProduct));
+            $seenProductIds     = array_values(array_unique(array_map('intval', $seenProductIds)));
 
-        if (!empty($incomingDetailIds)) {
-            // Comparar por detalle_id
-            $detailsToDelete = array_diff(array_keys($existingDetails), $incomingDetailIds);
-            foreach ($detailsToDelete as $detailId) {
-                $this->_deleteDetail($movement, $detailsRelation, (int)$detailId, $stockDirection);
-            }
-        } else {
-            // Fallback: comparar por product_id si no envían ids de detalle
-            $incomingProductIds = collect($productLines)->pluck('product_id')->toArray();
-            $productsToDelete = array_diff(array_values($existingDetails), $incomingProductIds);
+            $productsToDelete = array_diff($existingProductIds, $seenProductIds);
 
-            if (!empty($productsToDelete)) {
-                foreach ($existingDetails as $detailId => $prodId) {
-                    if (!in_array($prodId, $productsToDelete, true)) {
-                        continue;
-                    }
-                    $this->_deleteDetail($movement, $detailsRelation, (int)$detailId, $stockDirection);
-                }
+            foreach ($productsToDelete as $prodId) {
+                $detailId = (int) $byProduct[$prodId];
+                $this->_deleteDetail($movement, $detailsRelation, $detailId, $stockDirection);
             }
         }
     }
@@ -93,38 +91,31 @@ trait HandlesInventoryLines
 
         if (function_exists('bcmul') && function_exists('bcadd')) {
             return $details->reduce(function ($acc, $d) {
-                return bcadd($acc, bcmul((string)$d->unit_cost, (string)$d->quantity, 2), 2);
+                return bcadd($acc, bcmul((string) $d->unit_cost, (string) $d->quantity, 2), 2);
             }, "0.00");
         }
 
         return round(
-            $details->reduce(fn($acc, $d) => $acc + ((float)$d->unit_cost * (int)$d->quantity), 0.0),
+            $details->reduce(fn ($acc, $d) => $acc + ((float) $d->unit_cost * (int) $d->quantity), 0.0),
             2
         );
     }
 
-
     /**
-     * Elimina el movimiento y revierte el stock de sus detalles.
-     * Usa soft delete si está habilitado en el modelo.
+     * Elimina el movimiento y revierte el stock de sus detalles (soft delete si aplica).
      */
-
-
     protected function softDeleteMovementAndRevertStock($movement, string $detailsRelation, int $stockDirection): void
     {
-        // Solo detalles vigentes (no-trashed) por defecto
         $movement->{$detailsRelation}->each(function ($detail) use ($stockDirection) {
             // Revertir:
             // Entrada (+1) → revertir = -cantidad
             // Salida/Factura (-1) → revertir = +cantidad
             $this->_applyStock($detail->product, $detail->quantity * ($stockDirection * -1));
-            $detail->delete(); // Soft delete
+            $detail->delete();
         });
 
-        $movement->delete(); // Soft delete
+        $movement->delete();
     }
-
-
 
     // ================== HELPERS ==================
 
@@ -145,22 +136,26 @@ trait HandlesInventoryLines
         }
 
         $unitCost = $this->_resolveUnitCost($product, $row, null, $getUnitCost);
-        
+
         // Crear vía relación (la FK se asigna según la relación definida en el modelo)
-        $movement->{$detailsRelation}()->create([
+        $payload = [
             'product_id' => $product->id,
-            'quantity'   => (int)($row['quantity'] ?? 0),
+            'quantity'   => (int) ($row['quantity'] ?? 0),
             'unit_cost'  => $unitCost,
-            $priceColumn => $unitCost,
-        ]);
+        ];
+        if ($priceColumn !== 'unit_cost') {
+            $payload[$priceColumn] = $unitCost;
+        }
+
+        $movement->{$detailsRelation}()->create($payload);
 
         // Ajustar stock
-        $this->_applyStock($product, (int)($row['quantity'] ?? 0) * $stockDirection);
+        $this->_applyStock($product, (int) ($row['quantity'] ?? 0) * $stockDirection);
     }
 
     /**
      * Helper: actualizar detalle (revierte stock previo, actualiza qty/costo y reaplica stock).
-     * Mantiene exactamente tu comportamiento actual (NO cambia product_id).
+     * Mantiene exactamente tu comportamiento original (NO cambia product_id).
      */
     protected function _updateDetail(
         $movement,
@@ -169,7 +164,7 @@ trait HandlesInventoryLines
         array $row,
         int $stockDirection,
         ?callable $getUnitCost = null,
-        String $priceColumn = 'unit_cost'
+        string $priceColumn = 'unit_cost'
     ): void {
         $detail = $movement->{$detailsRelation}()->find($detailId);
         if (!$detail) {
@@ -182,15 +177,19 @@ trait HandlesInventoryLines
         // 2) Resolver unit_cost (con el product del detalle, tal cual tu lógica)
         $unitCost = $this->_resolveUnitCost($detail->product, $row, $detail, $getUnitCost);
 
-        // 3) Actualizar línea (solo quantity y unit_cost)
-        $detail->update([
-            'quantity'  => (int)($row['quantity'] ?? 0),
+        // 3) Actualizar línea (quantity / costos)
+        $update = [
+            'quantity'  => (int) ($row['quantity'] ?? 0),
             'unit_cost' => $unitCost,
-            $priceColumn => $unitCost,
-        ]);
+        ];
+        if ($priceColumn !== 'unit_cost') {
+            $update[$priceColumn] = $unitCost;
+        }
+
+        $detail->update($update);
 
         // 4) Aplicar stock con el nuevo valor
-        $this->_applyStock($detail->product, (int)($row['quantity'] ?? 0) * $stockDirection);
+        $this->_applyStock($detail->product, (int) ($row['quantity'] ?? 0) * $stockDirection);
     }
 
     /**
@@ -237,9 +236,9 @@ trait HandlesInventoryLines
 
         // Normaliza a 2 decimales si hay BCMath; si no, float.
         return function_exists('bcadd')
-            ? number_format((float)$unit, 2, '.', '')
-            : (float)$unit;
-    }
+            ? number_format((float) $unit, 2, '.', '')
+            : (float) $unit;
+        }
 
     /**
      * Helper: buscar producto o null.

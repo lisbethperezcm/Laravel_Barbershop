@@ -75,8 +75,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/inventory-exits', [InventoryExitsController::class, 'store']);
         Route::get('/inventory-exits', [InventoryExitsController::class, 'index']);
         Route::delete('/inventory-exits/{inventoryExit}', [InventoryExitsController::class, 'destroy']);
+        Route::put('/inventory-exits/{inventoryExit}', [InventoryExitsController::class, 'update']);
 
         Route::post('/inventory-entries', [InventoryEntryController::class, 'store']);
+        Route::put('/inventory-entries/{inventoryEntry}', [InventoryEntryController::class, 'update']);
 
         // 📌 **FACTURAS (Invoices)*/
         Route::post('/invoices', [InvoiceController::class, 'store']); // Crear una factura

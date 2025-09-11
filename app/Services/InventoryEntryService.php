@@ -49,7 +49,7 @@ class InventoryEntryService
     {
         
 
-            // 1) Actualizar cabecera (sin tocar total aún)
+            // 1) Actualizar cabecera (excepto total)
             $inventoryEntry->update([
                 'entry_type' => $data['entry_type'] ?? $inventoryEntry->entry_type,
                 'entry_date' => $data['entry_date'] ?? $inventoryEntry->entry_date,
@@ -57,13 +57,17 @@ class InventoryEntryService
                 'invoice_number' => $data['invoice_number'] ?? $inventoryEntry->invoice_number,
             ]);
 
+            if(!isset($data['products'])) {
+                // No se actualizan los productos
+                return $inventoryEntry->load('entryDetails.product');
+            }
             // 2) Sincronizar detalles (suma stock: +1)
             $this->processProductDetails(
                 movement:        $inventoryEntry,
                 productLines:    $data['products'] ?? [],
                 detailsRelation: 'entryDetails',
                 stockDirection:  +1,
-                getUnitCost:     null // o pasa un resolver para forzar costo de compra si lo manejas aparte
+                getUnitCost:     null // usa unit_cost del payload o del producto si no viene
             );
 
             // 3) Recalcular total desde la BD
