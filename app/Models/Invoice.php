@@ -49,6 +49,12 @@ class Invoice extends Model
         return $this->hasMany(InvoiceDetail::class);
     }
 
+    public function invoiceProductDetails()
+{
+    // ¡Solo productos!
+    return $this->invoiceDetails()->whereNotNull('product_id');
+}
+
     public function paymentType()
     {
         return $this->belongsTo(PaymentType::class);

@@ -82,6 +82,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // 📌 **FACTURAS (Invoices)*/
         Route::post('/invoices', [InvoiceController::class, 'store']); // Crear una factura
+        Route::put('/invoices/{invoice}', [InvoiceController::class, 'update']); // Actualizar una factura
         Route::delete('/invoices/{invoice}', [InvoiceController::class, 'destroy']); // Eliminar una factura
 
         /* 📌 DESPACHOS (Dispatches) */

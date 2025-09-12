@@ -70,6 +70,34 @@ class InvoiceController extends Controller
         ], 201);
     }
 
+    public function update(InvoiceRequest $request, Invoice $invoice)
+    {
+
+          $user = auth()->user();
+        $invoice = $this->invoiceService->updateInvoice($invoice, [
+            'appointment_id' => $request->input('appointment_id'),
+            'client_id' => $request->input('client_id'),
+            'barber_id' => $request->input('barber_id'),
+            'status_id' => $request->input('status_id'),
+            'reference_number' => $request->input('reference_number'),
+            'aprovation_number' => $request->input('aprovation_number'),
+            'products' => $request->has('products') ? $request->input('products') : null,
+            'services' => $request->has('services') ? $request->input('services') : null,
+        ]);
+
+        return response()->json([
+            'message'   => 'Factura actualizada exitosamente',
+            'data' => new InvoiceResource($invoice),
+            'errorCode' => 200
+        ], 200);
+    }
+
+     /**
+     * Eliminar una factura.
+     *
+     * @param  Invoice  $invoice
+     * @return \Illuminate\Http\Response
+     */
     public function destroy(Invoice $invoice)
     {
         // Eliminar la factura

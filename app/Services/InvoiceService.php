@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\Appointment;
+use App\Models\Service;
 use Illuminate\Support\Facades\DB;
 use App\Traits\HandlesInventoryLines;
 
@@ -33,21 +34,33 @@ class InvoiceService
             'itbis' => 0, // se recalcula luego
         ]);
 
-        // 2) Sincronizar detalles (resta stock: -1)
+        // Normalizar las líneas de productos para usar 'product_id'
+        $products01 = collect($products)
+            ->map(function ($line) {
+                if (isset($line['id']) && !isset($line['product_id'])) {
+                    $line['product_id'] = $line['id'];
+                }
+                return $line;
+            })
+            ->all();
+
+
+        //Sincronizar detalles (resta stock: -1)
         $this->processProductDetails(
             movement: $invoice,
-            productLines: $products,
+            productLines: $products01,
             detailsRelation: 'invoiceDetails',
             stockDirection: -1, // resta stock
-            getUnitCost: fn($product, $line) => $product->sale_price, // usa el unit_cost de la línea o del producto si no viene
+            getUnitCost: fn($products, $line) => $products->sale_price, // usa el unit_cost de la línea o del producto si no viene
             priceColumn: 'price' // columna de precio en InvoiceDetail
         );
+
         if ($appointmentId) {
             // 3) Crear detalles de servicios desde la cita
             $this->createServiceDetailsFromAppointment($invoice, $appointment);
         }
 
-       
+
         // Calcular subtotales y ITBIS
         $servicesSubtotal = $appointment ? $this->getServicesSubtotal($appointment) : 0;
         $productsSubtotal = $this->getProductsSubtotal($products);
@@ -63,6 +76,81 @@ class InvoiceService
         return $invoice;
     }
 
+    /**
+     * Actualizar una salida de inventario con detalles de productos.
+     */
+    public function updateInvoice(Invoice $invoice, array $data): Invoice
+    {
+
+       $products = array_key_exists('products', $data) ? $data['products'] : null;
+
+
+        $invoice->update([
+            'appointment_id'    => $data['appointment_id']    ?? $invoice->appointment_id,
+            'client_id'         => $data['client_id']         ?? $invoice->client_id,
+            'barber_id'         => $data['barber_id']         ?? $invoice->barber_id,
+            'status_id'         => $data['status_id']         ?? $invoice->status_id,
+            'reference_number'  => $data['reference_number']  ?? $invoice->reference_number,
+            'aprovation_number' => $data['aprovation_number'] ?? $invoice->aprovation_number,
+            'payment_type_id'   => $data['payment_type_id']   ?? $invoice->payment_type_id,
+        ]);
+
+        // Si no vienen productos, no tocamos detalles ni totales
+        if (isset($products)) {
+
+           
+
+            // Normalizar SOLO para el trait (id -> product_id)
+            $products01 = collect($products)
+                ->map(function ($line) {
+                    if (isset($line['id']) && !isset($line['product_id'])) {
+                        $line['product_id'] = $line['id'];
+                    }
+                    return $line;
+                })
+                ->all();
+
+            // Sincronizar detalles con el trait usando SOLO $products01
+            $this->processProductDetails(
+                movement: $invoice,
+                productLines: $products01 ?? [],
+                detailsRelation: 'invoiceProductDetails', // solo productos
+                stockDirection: -1,
+                getUnitCost: fn($products, $line) => $products->sale_price, // correcto: $products
+                priceColumn: 'price'
+            );
+        }
+
+        $services = $data['services'] ?? null;
+        if ($services) {
+
+            $this->updateServiceDetailsFromArray($invoice, $services);
+
+            // Si se actualizaron servicios, recalcular subtotal de servicios desde DB
+            $servicesSubtotal = $this->getServicesSubtotalFromInvoiceQuery($invoice);
+        } else {
+
+            $appointmentId    = $data['appointment_id'] ?? $invoice->appointment_id;
+            $appointment      = $appointmentId ? Appointment::find($appointmentId) : null;
+            $servicesSubtotal = $appointment ? $this->getServicesSubtotal($appointment) : 0.0;
+        }
+        // Recalcular totales 
+
+        $productsSubtotal = $products ? $this->getProductsSubtotal($products) : 0.0;
+        $taxAmount        = $products ? $this->getProductsTaxAmount($products) : $invoice->itbis;
+
+        $total = $servicesSubtotal + $productsSubtotal + $taxAmount;
+
+        $invoice->update([
+            'total' => $total,
+            'itbis' => $taxAmount,
+        ]);
+
+        return $invoice->fresh(['invoiceDetails.product', 'invoiceDetails.service']);
+    }
+    /**
+     * Crear detalles de servicios en la factura basados en la cita.
+     */
     protected function createServiceDetailsFromAppointment(Invoice $invoice, Appointment $appointment): void
     {
         // Asegura tener los servicios cargados
@@ -84,12 +172,87 @@ class InvoiceService
             ]);
         }
     }
+
     protected function getServicesSubtotal(Appointment $appointment): float
     {
         // Calcular el total sumando los precios de los servicios de la cita
         return $appointment->services->sum('current_price');
     }
 
+    /**
+     * Crear detalles de servicios en la factura a partir de un array de servicios.
+     *
+     * @param Invoice $invoice
+     * @param array   $services [['service_id' => int, 'quantity' => int, 'price' => float]]
+     */
+    protected function updateServiceDetailsFromArray(Invoice $invoice, array $services): void
+    {
+        $serviceIdsInPayload = collect($services)->pluck('service_id')->filter()->values();
+
+        // Crear o actualizar
+        foreach ($services as $service) {
+
+            $existingPrice = $invoice->invoiceDetails()
+                ->where('service_id', $service['service_id'])
+                ->whereNull('product_id')
+                ->value('price');
+
+            $incomingPrice = $service['price'] ?? null;
+
+            $price = ($incomingPrice !== null)
+                ? (float) $incomingPrice
+                : (float) ($existingPrice ?? Service::where('id', $service['service_id'])->value('current_price'));
+
+            $invoice->invoiceDetails()->updateOrCreate(
+                [
+                    'service_id' => $service['service_id'],
+                    'product_id' => null,
+                ],
+                [
+                    'quantity' => $service['quantity'],
+                    'price'    => number_format($price, 2, '.', ''),
+                ]
+            );
+        }
+
+        // Eliminar los que ya no vinieron
+        if ($serviceIdsInPayload->isNotEmpty()) {
+            $invoice->invoiceDetails()
+                ->whereNotNull('service_id')
+                ->whereNotIn('service_id', $serviceIdsInPayload)
+                ->delete();
+        } else {
+            $invoice->invoiceDetails()
+                ->whereNotNull('service_id')
+                ->delete();
+        }
+    }
+
+
+    /**
+   
+     * Calcular el subtotal de servicios a partir de un array.
+     *
+     * @param array $services [['service_id' => int, 'quantity' => int, 'price' => float]]
+     * @return float
+     */
+    /**
+     * Subtotal de servicios consultando directamente en DB (evita problemas de no tener la relación cargada).
+     */
+    protected function getServicesSubtotalFromInvoiceQuery(Invoice $invoice): float
+    {
+        $details = $invoice->invoiceDetails()
+            ->whereNotNull('service_id')
+            ->get(['price', 'quantity']);
+
+        $total = $details->sum(fn($d) => ((float)$d->price) * ((int)$d->quantity));
+
+        return round((float)$total, 2);
+    }
+
+    /**
+     * Obtener el subtotal basado en los productos (los servicios no llevan subtotal).
+     */
     protected function getProductsSubtotal(?array $products): float
     {
 
