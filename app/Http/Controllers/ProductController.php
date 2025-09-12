@@ -13,31 +13,31 @@ class ProductController extends Controller
      * Display a listing of the resource.
      */
 
-public function index(Request $request)
-{
-    // Obtener el nombre del producto del request (si viene)
-    $product_name = $request->input('name') ? trim($request->name) : null;
+    public function index(Request $request)
+    {
+        // Obtener el nombre del producto del request (si viene)
+        $product_name = $request->input('name') ? trim($request->name) : null;
 
-    $productsQuery = Product::query();
+        $productsQuery = Product::query();
 
-    // Filtro por nombre si se envía en la petición
-    if ($product_name) {
-        $productsQuery->nameLike($product_name);
+        // Filtro por nombre si se envía en la petición
+        if ($product_name) {
+            $productsQuery->nameLike($product_name);
+        }
+
+        $products = $productsQuery->get();
+
+        return response()->json([
+            'data' => $products,
+            'errorCode' => '200'
+        ], 200);
     }
-
-    $products = $productsQuery->get();
-
-    return response()->json([
-        'data' => $products,
-        'errorCode' => '200'
-    ], 200);
-}
     /**
      * Store a newly created resource in storage.
      */
     public function store(ProductRequest $request)
     {
-       
+
         $product = Product::create($request->all());
 
         return response()->json([
@@ -45,8 +45,6 @@ public function index(Request $request)
             'data' => $product,
             'errorCode' => '201'
         ], 201);
-
-      
     }
 
     /**
@@ -61,29 +59,29 @@ public function index(Request $request)
      * Update the specified resource in storage.
      */
     public function update(EditProductRequest $request, Product $product)
-{
+    {
 
 
         $product = Product::findOrFail($product->id);
-    // Validar datos y excluir stock
-    $validated = $request->safe()->except(['stock']);
+        // Validar datos y excluir stock
+        $validated = $request->safe()->except(['stock']);
 
-    if ($request->has('stock')) {
+        if ($request->has('stock')) {
+            return response()->json([
+                'message' => 'El stock no es posible actualizar en esta funcionalidad. Usa entradas/salidas/devoluciones.',
+                'errorCode' => 422
+            ], 422);
+        }
+
+        // Update directo
+        $product->update($validated);
+
         return response()->json([
-            'message' => 'El stock no es posible actualizar en esta funcionalidad. Usa entradas/salidas/devoluciones.',
-            'errorCode' => 422
-        ], 422);
+            'message' => 'Producto actualizado exitosamente.',
+            'data' => $product->fresh(),
+            'errorCode' => 200
+        ], 200);
     }
-
-    // Update directo
-    $product->update($validated);
-
-    return response()->json([
-        'message' => 'Producto actualizado exitosamente.',
-        'data' => $product->fresh(),
-        'errorCode' => 200
-    ], 200);
-}
 
 
     /**
@@ -98,7 +96,7 @@ public function index(Request $request)
             'errorCode' => 200
         ]);
     }
- /** */
+    /** */
 
     /**
      * Obtener productos con bajo stock.

@@ -51,12 +51,12 @@ class InventoryExit extends Model
       // Relación con el despacho al barbero
       public function barberDispatch()
       {
-          return $this->hasOne(BarberDispatch::class, 'exit_id');
+          return $this->hasOne(BarberDispatch::class, 'exit_id')->withTrashed();
       }
 
        public function createdBy()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class, 'created_by')->withTrashed();
     }
     public static function boot()
     {

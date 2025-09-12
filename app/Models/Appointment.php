@@ -81,17 +81,17 @@ class Appointment extends Model
     public function client()
     {
 
-        return $this->belongsTo(Client::class);
+        return $this->belongsTo(Client::class)->withTrashed();
     }
     public function barber()
     {
 
-        return $this->belongsTo(Barber::class);
+        return $this->belongsTo(Barber::class)->withTrashed();
     }
     public function services()
     {
 
-        return $this->belongsToMany(Service::class, 'appointment_service');
+        return $this->belongsToMany(Service::class, 'appointment_service')->withTrashed();
     }
 
     public function status()
@@ -100,7 +100,7 @@ class Appointment extends Model
     }
     public function createdBy()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class, 'created_by')->withTrashed();
     }
 
     public function invoice()

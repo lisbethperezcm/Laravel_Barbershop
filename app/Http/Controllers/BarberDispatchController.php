@@ -182,15 +182,20 @@ class BarberDispatchController extends Controller
         ], 200);
     }
 
-
-
-
-
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(BarberDispatch $dispatch)
     {
-        //
+
+        // Eliminar la salida de inventario asociada (esto también restaurará el stock)
+        $this->inventoryExitService->deleteInventoryExit($dispatch->inventoryExit);
+        // Eliminar el despacho
+        $dispatch->delete();
+
+        return response()->json([
+            'message' => 'Despacho eliminado exitosamente',
+            'errorCode' => 200
+        ], 200);
     }
 }

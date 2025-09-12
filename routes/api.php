@@ -49,7 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
     /* 📌 HORARIOS (Schedules) */
     Route::post('/barbers/availableSlots', [ScheduleController::class, 'getAvailableSlots']); // Obtener horarios disponibles de los barberos
     Route::get('/barbers/schedules', [ScheduleController::class, 'index']);
- 
+
 
     // --- Rutas CON transacción (crear/editar/eliminar)
 
@@ -74,11 +74,12 @@ Route::middleware('auth:sanctum')->group(function () {
         /* 📌 INVENTARIO (Inventory) */
         Route::post('/inventory-exits', [InventoryExitsController::class, 'store']);
         Route::get('/inventory-exits', [InventoryExitsController::class, 'index']);
-        Route::delete('/inventory-exits/{inventoryExit}', [InventoryExitsController::class, 'destroy']);
         Route::put('/inventory-exits/{inventoryExit}', [InventoryExitsController::class, 'update']);
+        Route::delete('/inventory-exits/{inventoryExit}', [InventoryExitsController::class, 'destroy']);
 
         Route::post('/inventory-entries', [InventoryEntryController::class, 'store']);
         Route::put('/inventory-entries/{inventoryEntry}', [InventoryEntryController::class, 'update']);
+        Route::delete('/inventory-entries/{inventoryEntry}', [InventoryEntryController::class, 'destroy']);
 
         // 📌 **FACTURAS (Invoices)*/
         Route::post('/invoices', [InvoiceController::class, 'store']); // Crear una factura
@@ -88,7 +89,8 @@ Route::middleware('auth:sanctum')->group(function () {
         /* 📌 DESPACHOS (Dispatches) */
         Route::post('/barber-dispatch', [BarberDispatchController::class, 'store']);
         Route::put('/barber-dispatch/{dispatch}', [BarberDispatchController::class, 'update']);
-      
+        Route::delete('/barber-dispatch/{dispatch}', [BarberDispatchController::class, 'destroy']);
+
         /* 📌 TIPS DE CUIDADO (Care Tips) */
         Route::post('/care-tips', [CareTipController::class, 'store']); // Crear un tip
         Route::put('/care-tips/{careTip}', [CareTipController::class, 'update']); // Actualizar un tip
@@ -99,12 +101,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
         /* 📌 BARBEROS (Barbers) */
         Route::put('/barbers/{barber}', [BarberController::class, 'update']); // Actualizar un barbero
+        Route::delete('/barbers/{barber}', [BarberController::class, 'destroy']); // Eliminar un barbero
 
-         /* 📌 HORARIOS (Schedules) */
-           Route::put('/barbers/schedules/{barber}', [ScheduleController::class, 'update']); //Actualizar horario de barbero
+
+        /* 📌 HORARIOS (Schedules) */
+        Route::put('/barbers/schedules/{barber}', [ScheduleController::class, 'update']); //Actualizar horario de barbero
 
         /* 📌 CLIENTES (Clients) */
         Route::put('/clients', [ClientController::class, 'update']); // Actualizar un cliente
+        Route::delete('/clients/{client}', [ClientController::class, 'destroy']); // Eliminar un cliente
     });
 });
 
@@ -121,13 +126,12 @@ Route::post('/login', [AuthController::class, 'login']); // Inicia sesión y dev
 // 📌 **BARBEROS (Barbers)**
 Route::get('/barbers', [BarberController::class, 'index']); // Listar todos los barberos
 Route::get('/barbers/{barber}', [BarberController::class, 'show']); // Obtener un barbero por ID
-Route::delete('/barbers/{barber}', [BarberController::class, 'destroy']); // Eliminar un barbero
 Route::post('schedules/toggle-status', [ScheduleController::class, 'toggleStatus']); // Inactivar y activar un horario
 
 // 📌 **CLIENTES (Clients)**
 Route::get('/clients', [ClientController::class, 'index']); // Listar todos los clientes
 Route::get('/clients/{client}', [ClientController::class, 'show']); // Obtener un cliente por ID
-Route::delete('/clients', [ClientController::class, 'destroy']); // Eliminar un cliente
+
 // 📌 **ROLES (Roles)**
 Route::get('/roles', [RoleController::class, 'index']); // Listar los roles disponibles
 Route::get('/roles/{role}', [RoleController::class, 'show']);

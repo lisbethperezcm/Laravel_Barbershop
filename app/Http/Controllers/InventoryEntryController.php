@@ -89,5 +89,14 @@ class InventoryEntryController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id) {}
+    public function destroy(InventoryEntry $inventoryEntry) {
+
+          // Eliminar la entrada de inventario
+        $this->inventoryEntryService->deleteInventoryEntry($inventoryEntry);
+
+        return response()->json([
+            'message' => 'Entrada de inventario eliminada exitosamente',
+            'errorCode' => 200
+        ], 200);
+    }
 }

@@ -44,7 +44,7 @@ class Client extends Model
     {
 
         //Relacion entre el modelo cliente y el modelo persona
-        return $this->belongsTo(Person::class);
+        return $this->belongsTo(Person::class)->withTrashed();
     }
     public function appointments()
     {
