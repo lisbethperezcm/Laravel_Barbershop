@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class EntryDetail extends Model
 {
-    use HasFactory;
+    use HasFactory ,SoftDeletes;
 
     protected $fillable = [
     'entry_id',
@@ -25,7 +26,7 @@ class EntryDetail extends Model
 
     public function product()
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(Product::class)->withTrashed();
     }
 
 

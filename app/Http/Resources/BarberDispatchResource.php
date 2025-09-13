@@ -20,12 +20,14 @@ class BarberDispatchResource extends JsonResource
             'dispatch_date' => $this->dispatch_date,
             'status' => $this->status->name ?? 'Sin estado',
             'products' => $this->inventoryExit->exitDetails->map(fn($detail) => [
+                    'product_id' => $detail->product_id,
                 'product_name' => $detail->product->name,
                 'quantity' => $detail->quantity,
                 'unit_cost' => $detail->unit_cost,
                 'subtotal' => GeneralHelper::getFloat($detail->unit_cost * $detail->quantity)  
             ]),
-            'total' => $this->inventoryExit->total ?? 0, // 🔹 Obtiene el total de la salida de inventario
+            'note' => $this->inventoryExit->note ?? '',
+            'total' => GeneralHelper::getFloat($this->inventoryExit->total) ?? 0, // 🔹 Obtiene el total de la salida de inventario
             'created_at' => $this->created_at,
             'created_by' => $this->createdBy->person->first_name . ' ' . $this->createdBy->person->last_name,
             'updated_at' => $this->updated_at,

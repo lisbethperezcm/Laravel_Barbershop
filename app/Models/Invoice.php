@@ -34,15 +34,15 @@ class Invoice extends Model
 
     public function client()
     {
-        return $this->belongsTo(Client::class);
+        return $this->belongsTo(Client::class)->withTrashed();
     }
     public function barber()
     {
-        return $this->belongsTo(Barber::class);
+        return $this->belongsTo(Barber::class)->withTrashed();
     }
     public function appointment()
     {
-        return $this->belongsTo(Appointment::class);
+        return $this->belongsTo(Appointment::class)->withTrashed();
     }
     public function invoiceDetails()
     {

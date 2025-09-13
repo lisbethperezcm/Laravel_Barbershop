@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Services\InventoryEntryService;
 use App\Http\Requests\GetInventoryRequest;
 use App\Http\Requests\InventoryEntryRequest;
+use App\Http\Resources\InventoryEntryCollection;
 
 class InventoryEntryController extends Controller
 {
@@ -34,7 +35,7 @@ class InventoryEntryController extends Controller
             ->get();
 
         return response()->json([
-            'data'      => $inventoryEntries,
+            'data'      => new InventoryEntryCollection($inventoryEntries),
             'errorCode' => 200,
         ], 200);
     }
@@ -89,5 +90,14 @@ class InventoryEntryController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id) {}
+    public function destroy(InventoryEntry $inventoryEntry) {
+
+          // Eliminar la entrada de inventario
+        $this->inventoryEntryService->deleteInventoryEntry($inventoryEntry);
+
+        return response()->json([
+            'message' => 'Entrada de inventario eliminada exitosamente',
+            'errorCode' => 200
+        ], 200);
+    }
 }

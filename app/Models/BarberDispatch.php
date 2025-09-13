@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class BarberDispatch extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'barber_dispatches';
 
@@ -46,7 +47,7 @@ class BarberDispatch extends Model
     public function barber()
     {
 
-        return $this->belongsTo(Barber::class);
+        return $this->belongsTo(Barber::class)->withTrashed();
     }
     /**
      * Relación con la tabla status
@@ -58,7 +59,7 @@ class BarberDispatch extends Model
 
     public function createdBy()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class, 'created_by')->withTrashed();
     }
     public static function boot()
     {

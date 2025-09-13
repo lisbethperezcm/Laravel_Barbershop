@@ -18,8 +18,9 @@ return new class extends Migration
             $table->date('dispatch_date');
             $table->foreignId('status_id')->nullable()->constrained('statuses')->onDelete('set null');
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
-            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null'); 
+            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
@@ -33,10 +34,10 @@ return new class extends Migration
         Schema::table('barber_dispatches', function (Blueprint $table) {
             $table->dropForeign(['exit_id']);
             $table->dropForeign(['barber_id']);
-            $table->dropForeign(['status_id']);  
-            $table->dropForeign(['created_by']);  
-            $table->dropForeign(['updated_by']);          
-        });  
+            $table->dropForeign(['status_id']);
+            $table->dropForeign(['created_by']);
+            $table->dropForeign(['updated_by']);
+        });
         Schema::dropIfExists('barber_dispatches');
     }
 };

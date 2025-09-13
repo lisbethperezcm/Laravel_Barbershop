@@ -98,7 +98,7 @@ class InventoryExitService
         $this->softDeleteMovementAndRevertStock(
             $inventoryExit,   // La salida a eliminar
             'exitDetails',    // Relación en el modelo
-            +1                // Salidas suma el stock al revertir
+            -1                // Salidas suma el stock al revertir
         );
         return $inventoryExit->fresh();
     }

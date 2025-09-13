@@ -82,9 +82,8 @@ class InvoiceService
     public function updateInvoice(Invoice $invoice, array $data): Invoice
     {
 
-       $products = array_key_exists('products', $data) ? $data['products'] : null;
-
-
+     $products = array_key_exists('products', $data) ? $data['products'] : null;
+        
         $invoice->update([
             'appointment_id'    => $data['appointment_id']    ?? $invoice->appointment_id,
             'client_id'         => $data['client_id']         ?? $invoice->client_id,
@@ -97,11 +96,9 @@ class InvoiceService
 
         // Si no vienen productos, no tocamos detalles ni totales
         if (isset($products)) {
-
-           
-
+            $products = $data['products'] ?? [];
             // Normalizar SOLO para el trait (id -> product_id)
-            $products01 = collect($products)
+            $products01 = collect($data['products'])
                 ->map(function ($line) {
                     if (isset($line['id']) && !isset($line['product_id'])) {
                         $line['product_id'] = $line['id'];
@@ -273,19 +270,28 @@ class InvoiceService
      * Obtener el ITBIS basado en los productos (los servicios no llevan ITBIS).
      */
     protected function getProductsTaxAmount(?array $products): float
-    {
-        if (empty($products)) {
-            return 0;
-        }
+{
+    if (empty($products)) return 0.0;
 
-        // Cargar todos los productos en una sola consulta
-        $productsModel = Product::whereIn('id', collect($products)->pluck('id'))->get()->keyBy('id');
+    // Acepta 'product_id' o 'id'
+    $ids = collect($products)
+        ->map(fn($p) => $p['product_id'] ?? $p['id'] ?? null)
+        ->filter()
+        ->unique()
+        ->values()
+        ->all();
 
-        // Calcular el ITBIS sumando el total de ITBIS de cada producto usando el accesorio en el modelo
-        return collect($products)->sum(
-            fn($product) => ($productsModel[$product['id']]->calculated_itbis * $product['quantity'] ?? 0)
-        );
-    }
+    $productsModel = Product::whereIn('id', $ids)->get()->keyBy('id');
+
+    return collect($products)->sum(function ($p) use ($productsModel) {
+        $pid   = $p['product_id'] ?? $p['id'] ?? null;
+        $qty   = (int) ($p['quantity'] ?? 1);
+        $model = $pid ? $productsModel->get($pid) : null;
+
+        return $model ? ((float) $model->calculated_itbis * $qty) : 0.0;
+    });
+}
+
     /**
      * Elimina una factura y revierte el stock de sus detalles.
      */
@@ -294,8 +300,8 @@ class InvoiceService
         // Revertir stock de los detalles
         $this->softDeleteMovementAndRevertStock(
             $invoice,
-            'invoiceDetails',
-            -1 // Resta stock
+            'invoiceProductDetails',
+            -1 // Suma stock
         );
 
         return $invoice->fresh();

@@ -86,7 +86,7 @@ class InventoryEntryService
         $this->softDeleteMovementAndRevertStock(
             $inventoryEntry,   // La entrada a eliminar
             'entryDetails',    // Relación en el modelo
-            -1                // Entrada resta el stock al revertir
+            +1                // Entrada resta el stock al revertir
         );
         return $inventoryEntry->fresh();
     }

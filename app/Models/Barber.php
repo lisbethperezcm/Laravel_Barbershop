@@ -52,7 +52,7 @@ class Barber extends Model
 
     public function person()
     {
-        return $this->belongsTo(Person::class);
+        return $this->belongsTo(Person::class)->withTrashed();
     }
     public function schedules()
     {
