@@ -23,12 +23,14 @@ class BarberDispatchCollection extends ResourceCollection
                 'dispatch_date' => $dispatch->dispatch_date,
                 'status' => $dispatch->status->name ?? 'Sin estado',
                 'products' => $dispatch->inventoryExit->exitDetails->map(fn($detail) => [
+                    'product_id' => $detail->product_id,
                     'product_name' => $detail->product->name,
                     'quantity' => $detail->quantity,
                     'unit_cost' => $detail->unit_cost,
                     'subtotal' => GeneralHelper::getFloat($detail->unit_cost * $detail->quantity)  
                 ]),
-                'total' => $dispatch->inventoryExit->total ?? 0, // 🔹 Obtiene el total de la salida de inventario
+                'note' => $dispatch->inventoryExit->note ?? '',
+                'total' => GeneralHelper::getFloat($dispatch->inventoryExit->total) ?? 0, // 🔹 Obtiene el total de la salida de inventario
                 'created_at' =>$dispatch->created_at,
                 'created_by' => $dispatch->createdBy->person->first_name . ' ' . $dispatch->createdBy->person->last_name,
                 'updated_at' => $dispatch->updated_at,

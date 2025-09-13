@@ -21,23 +21,23 @@ class DatabaseSeeder extends Seeder
         $this->call([
 
 
-        //    RoleSeeder::class,
-        //    DaySeeder::class,
-        //    ServiceSeeder::class,
-        //    StatusSeeder::class,
-            //BarberSeeder::class,
-            //ProductSeeder::class,
+         RoleSeeder::class,
+        DaySeeder::class,
+        ServiceSeeder::class,
+        StatusSeeder::class, 
+        ProductSeeder::class  ]);
+       /* BarberSeeder::class,
+       
             // RoleSeeder::class,
             // DaySeeder::class, 
 
 
 
-        ]);
+      
         // \App\Models\User::factory(10)->create();
 
         // \App\Models\User::factory()->create([
         //     'name' => 'Test User',
         //     'email' => 'test@example.com',
-        // ]);
-    }
+        // ]);*/  }
 }
