@@ -67,7 +67,7 @@ class InvoiceController extends Controller
         // Retornar la respuesta
         return response()->json([
             'message' => 'Factura creada correctamente',
-            'data' => $invoice,
+            'data' => new InvoiceResource($invoice),
         ], 201);
     }
 
