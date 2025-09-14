@@ -78,4 +78,8 @@ class Barber extends Model
 
         return $this->hasMany(BarberDispatch::class);
     }
+      public function review()
+    {
+        return $this->hasMany(BarberReview::class);
+    }
 }

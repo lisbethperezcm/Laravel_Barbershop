@@ -15,9 +15,10 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\BarberReviewController;
 use App\Http\Controllers\BarberDispatchController;
-use App\Http\Controllers\InventoryExitsController;
 use App\Http\Controllers\InventoryEntryController;
+use App\Http\Controllers\InventoryExitsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -110,6 +111,10 @@ Route::middleware('auth:sanctum')->group(function () {
         /* 📌 CLIENTES (Clients) */
         Route::put('/clients', [ClientController::class, 'update']); // Actualizar un cliente
         Route::delete('/clients/{client}', [ClientController::class, 'destroy']); // Eliminar un cliente
+
+        /* 📌 Reseñas (Reviews) */
+        Route::get('/barber-reviews', [BarberReviewController::class, 'index']);
+        Route::post('/barber-reviews', [BarberReviewController::class, 'store']);
     });
 });
 
