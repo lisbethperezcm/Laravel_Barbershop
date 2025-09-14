@@ -19,8 +19,9 @@ class InvoiceResource extends JsonResource
         return [
             'id' => $this->id,
             'appointment_id' => $this->appointment_id,
-            'status' => $this->status->name,
+            'status'         => $this->status?->name,
             'client_name' => $this->client->person->first_name . ' ' . $this->client->person->last_name,
+            'payment_type' => $this->paymentType?->name,
             'details' => $this->invoiceDetails->map(fn($detail) => [
                 'type' => $detail->service_id ? 'service' : 'product',
                 'name' => $detail->service_id ? $detail->service->name : $detail->product->name,
