@@ -21,7 +21,7 @@ class Invoice extends Model
         'created_by',
         'updated_by',
         'reference_number',
-        'approvation_number'
+        'aprovation_number'
 
     ];
 

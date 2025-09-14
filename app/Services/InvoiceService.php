@@ -27,9 +27,9 @@ class InvoiceService
             'client_id' => $client_id,
             'barber_id' => $appointment?->barber_id,
             'status_id' => $data['status_id'],
-            'reference_number' => $data['reference_number'],
-            'aprovation_number' => $data['aprovation_number'],
-            'payment_type_id' => null,
+            'reference_number' => $data['reference_number'] ?? null,
+            'aprovation_number' => $data['aprovation_number'] ?? null,
+            'payment_type_id' => $data['payment_type_id'] ?? null,
             'total' => 0, // se recalcula luego
             'itbis' => 0, // se recalcula luego
         ]);
@@ -82,8 +82,8 @@ class InvoiceService
     public function updateInvoice(Invoice $invoice, array $data): Invoice
     {
 
-     $products = array_key_exists('products', $data) ? $data['products'] : null;
-        
+        $products = array_key_exists('products', $data) ? $data['products'] : null;
+
         $invoice->update([
             'appointment_id'    => $data['appointment_id']    ?? $invoice->appointment_id,
             'client_id'         => $data['client_id']         ?? $invoice->client_id,
@@ -270,27 +270,27 @@ class InvoiceService
      * Obtener el ITBIS basado en los productos (los servicios no llevan ITBIS).
      */
     protected function getProductsTaxAmount(?array $products): float
-{
-    if (empty($products)) return 0.0;
+    {
+        if (empty($products)) return 0.0;
 
-    // Acepta 'product_id' o 'id'
-    $ids = collect($products)
-        ->map(fn($p) => $p['product_id'] ?? $p['id'] ?? null)
-        ->filter()
-        ->unique()
-        ->values()
-        ->all();
+        // Acepta 'product_id' o 'id'
+        $ids = collect($products)
+            ->map(fn($p) => $p['product_id'] ?? $p['id'] ?? null)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
 
-    $productsModel = Product::whereIn('id', $ids)->get()->keyBy('id');
+        $productsModel = Product::whereIn('id', $ids)->get()->keyBy('id');
 
-    return collect($products)->sum(function ($p) use ($productsModel) {
-        $pid   = $p['product_id'] ?? $p['id'] ?? null;
-        $qty   = (int) ($p['quantity'] ?? 1);
-        $model = $pid ? $productsModel->get($pid) : null;
+        return collect($products)->sum(function ($p) use ($productsModel) {
+            $pid   = $p['product_id'] ?? $p['id'] ?? null;
+            $qty   = (int) ($p['quantity'] ?? 1);
+            $model = $pid ? $productsModel->get($pid) : null;
 
-        return $model ? ((float) $model->calculated_itbis * $qty) : 0.0;
-    });
-}
+            return $model ? ((float) $model->calculated_itbis * $qty) : 0.0;
+        });
+    }
 
     /**
      * Elimina una factura y revierte el stock de sus detalles.

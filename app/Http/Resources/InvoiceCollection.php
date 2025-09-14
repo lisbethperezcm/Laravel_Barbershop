@@ -23,6 +23,7 @@ class InvoiceCollection extends ResourceCollection
                 'client_name'    => trim(
                     ($invoice->client->person->first_name ?? '') . ' ' . ($invoice->client->person->last_name ?? '')
                 ),
+                'payment_type' => $invoice->paymentType?->name,
                 'details' => $invoice->invoiceDetails->map(function ($detail) {
                     $isService = !is_null($detail->service_id);
 

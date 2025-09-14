@@ -32,6 +32,7 @@ class InvoiceRequest extends FormRequest
                 'products'             => 'nullable|array|required_without:appointment_id',
                 'products.*.id'        => 'required_with:products|exists:products,id',
             'products.*.quantity'  => 'required_with:products|integer|min:1',
+            'payment_type_id'      => 'nullable|exists:payment_types,id'
 
             ];
         } else {

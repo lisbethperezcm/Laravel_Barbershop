@@ -51,6 +51,7 @@ class InvoiceController extends Controller
             'client_id' => $request->client_id,
             'barber_id' => $request->barber_id,
             'status_id' => $request->status_id,
+            'payment_type_id' => $request->payment_type_id,
             'reference_number' => $request->reference_number,
             'aprovation_number' => $request->aprovation_number,
             'products' => $request->products,
@@ -66,7 +67,7 @@ class InvoiceController extends Controller
         // Retornar la respuesta
         return response()->json([
             'message' => 'Factura creada correctamente',
-            'data' => new InvoiceResource($invoice)
+            'data' => $invoice,
         ], 201);
     }
 
@@ -79,6 +80,7 @@ class InvoiceController extends Controller
             'client_id' => $request->input('client_id'),
             'barber_id' => $request->input('barber_id'),
             'status_id' => $request->input('status_id'),
+            'payment_type_id' => $request->input('payment_type_id'),
             'reference_number' => $request->input('reference_number'),
             'aprovation_number' => $request->input('aprovation_number'),
             'products' => $request->has('products') ? $request->input('products') : null,
