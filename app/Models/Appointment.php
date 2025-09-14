@@ -98,6 +98,11 @@ class Appointment extends Model
     {
         return $this->belongsTo(Status::class);
     }
+
+    public function review()
+    {
+        return $this->hasOne(BarberReview::class);
+    }
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by')->withTrashed();

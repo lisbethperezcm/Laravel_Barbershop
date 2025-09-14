@@ -26,7 +26,7 @@ class Client extends Model
      */
     public function lastThreeServices()
     {
-       
+
         $appointments = $this->appointments()
             ->where('status_id', 7) // Completed appointments
             ->orderBy('appointment_date', 'desc')
@@ -34,12 +34,12 @@ class Client extends Model
             ->with('services')
             ->get();
 
-       
-         // Return only the IDs of the services
-    return $appointments->flatMap(function ($appointment) {
-        return $appointment->services->pluck('id');
-    })->unique()->values()->toArray();
-}
+
+        // Return only the IDs of the services
+        return $appointments->flatMap(function ($appointment) {
+            return $appointment->services->pluck('id');
+        })->unique()->values()->toArray();
+    }
     public function person()
     {
 
@@ -55,5 +55,10 @@ class Client extends Model
     public function invoices()
     {
         return $this->hasMany(Invoice::class);
+    }
+    
+    public function review()
+    {
+        return $this->hasMany(BarberReview::class);
     }
 }
