@@ -9,6 +9,7 @@ use App\Models\Appointment;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+
 class AppointmentRequest extends FormRequest
 {
     /**
@@ -90,8 +91,12 @@ class AppointmentRequest extends FormRequest
 
             // Obtener horario del barbero
             $dayOfWeek = $appointmentDate->dayOfWeek;
+
+            // Ajustar para tu tabla Days (1=lunes...7=domingo)
+            $mysqlDayId = $dayOfWeek === 0 ? 7 : $dayOfWeek;
+
             $schedule = Schedule::where('barber_id', $barberId)
-                ->where('day_id', $dayOfWeek)
+                ->where('day_id', $mysqlDayId)
                 ->first();
 
             if ($schedule) {
@@ -132,18 +137,18 @@ class AppointmentRequest extends FormRequest
         });
     }
 
-   
+
     protected function failedValidation(Validator $validator)
     {
         $requiredFields = ['barber_id', 'appointment_date', 'start_time', 'end_time', 'services'];
-    
+
         $failed = $validator->failed(); // Ej: ['barber_id' => ['Required' => []], ...]
-    
+
         // Verificar si alguno de los campos requeridos falló por "Required"
         $hasRequiredError = collect($requiredFields)->contains(function ($field) use ($failed) {
             return isset($failed[$field]['Required']);
         });
-    
+
         if ($hasRequiredError) {
             throw new HttpResponseException(response()->json([
                 'message' => 'Revisar faltan campos requeridos.',
@@ -151,9 +156,8 @@ class AppointmentRequest extends FormRequest
                 'errorCode' => 422
             ], 422));
         }
-    
+
         // De lo contrario, se usa la validación por defecto
         parent::failedValidation($validator);
     }
-    
 }

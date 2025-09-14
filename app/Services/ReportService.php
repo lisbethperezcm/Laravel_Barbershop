@@ -99,4 +99,62 @@ class ReportService
 
         return response()->json($result);
     }
+
+    public function getBarberDashboard(Barber $barber)
+    {
+        $today = Carbon::today()->toDateString();
+        
+        // Base citas de HOY (excluyendo canceladas)
+        $appointmentsQuery = Appointment::where('barber_id', $barber->id)
+            ->whereDate('appointment_date', $today)
+            ->whereIn('status_id', [3, 5, 7]); // reservado, en proceso, completado
+
+        $appointmentsToday = (clone $appointmentsQuery)->count();
+        $completed         = (clone $appointmentsQuery)->where('status_id', 7)->count();
+        $pending           = $appointmentsToday - $completed;
+
+        // Ingresos estimados (sumando facturas ya pagadas HOY del barbero)
+       
+        // 👇 Obtener ingreso neto del barbero en el day
+        $netIncomeToday = $barber->getCurrentDayNetIncome();
+        // Próximas 3 citas de hoy
+
+
+        $nextAppointments = Appointment::with([
+            'client.person',
+            'services' // solo lo necesario
+        ])
+            ->where('barber_id', $barber->id)
+            ->whereIn('status_id', [3, 5]) // 3=reservada, 5=en proceso
+            ->whereRaw("CONCAT(appointment_date,' ',start_time) >= ?", [Carbon::now()->format('Y-m-d H:i:s')])
+            ->orderBy('appointment_date')
+            ->orderBy('start_time')
+            ->limit(3)
+            ->get()
+            ->map(function ($appointment) {
+                $servicesTotal = $appointment->services->sum(fn($s) => (float) $s->current_price);
+
+                return [
+                    'id'           => $appointment->id,
+                    'date'         => $appointment->appointment_date,
+                    'start_time'   => $appointment->start_time,
+                    'end_time'     => $appointment->end_time,
+                    'client'       => $appointment->client->person->first_name . ' ' . $appointment->client->person->last_name,
+                    'services'     => $appointment->services->pluck('name')->values(),
+                    'total'        => (float) $servicesTotal, // <-- solo current_price de servicios
+                ];
+            });
+
+
+
+        $result = [
+            'estimated_income'   => (float) $netIncomeToday,
+            'appointments_today' => $appointmentsToday,
+            'completed'          => $completed,
+            'pending'            => $pending,
+            'next_appointments'  => $nextAppointments,
+        ];
+
+        return response()->json($result);
+    }
 }
