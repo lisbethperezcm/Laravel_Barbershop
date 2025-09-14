@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Barber;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Services\ReportService;
@@ -60,6 +61,13 @@ class ReportController extends Controller
         return $this->reportService->getYearlyIncomeByMonth();
     }
 
+    public function getBarberSummary(Barber $barber)
+    {
+
+        $summary = $this->reportService->getBarberDashboard($barber);
+
+        return response()->json($summary);
+    }
 
 
     /**
