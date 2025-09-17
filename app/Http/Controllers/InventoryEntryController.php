@@ -35,7 +35,7 @@ class InventoryEntryController extends Controller
             ->get();
 
         return response()->json([
-            'data'      => new InventoryEntryCollection($inventoryEntries),
+            'data'      => $inventoryEntries,
             'errorCode' => 200,
         ], 200);
     }
