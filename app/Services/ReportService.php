@@ -4,9 +4,12 @@ namespace App\Services;
 
 use Carbon\Carbon;
 use App\Models\Barber;
+use App\Models\Client;
+use App\Models\CareTip;
 use App\Models\Invoice;
 use App\Models\Appointment;
 use App\Helpers\GeneralHelper;
+use App\Http\Resources\CareTipCollection;
 
 class ReportService
 {
@@ -102,8 +105,9 @@ class ReportService
 
     public function getBarberDashboard(Barber $barber)
     {
+
         $today = Carbon::today()->toDateString();
-        
+
         // Base citas de HOY (excluyendo canceladas)
         $appointmentsQuery = Appointment::where('barber_id', $barber->id)
             ->whereDate('appointment_date', $today)
@@ -114,7 +118,7 @@ class ReportService
         $pending           = $appointmentsToday - $completed;
 
         // Ingresos estimados (sumando facturas ya pagadas HOY del barbero)
-       
+
         // 👇 Obtener ingreso neto del barbero en el day
         $netIncomeToday = $barber->getCurrentDayNetIncome();
         // Próximas 3 citas de hoy
@@ -156,5 +160,61 @@ class ReportService
         ];
 
         return response()->json($result);
+    }
+
+    public function getClientDashboard(Client $client)
+    {
+
+
+        // 2) Próxima cita (estados activos: 3=reservada, 5=en proceso)
+        $nextAppointment = Appointment::with([
+            'barber.person',
+            'services',
+
+        ])
+            ->where('client_id', $client->id)
+            ->whereIn('status_id', [3, 5]) // activos
+            ->whereRaw("CONCAT(appointment_date,' ',start_time) >= ?", [Carbon::now()->format('Y-m-d H:i:s')])
+            ->orderBy('appointment_date')
+            ->orderBy('start_time')
+            ->first();
+
+        $nextAppointmentPayload = null;
+
+        if ($nextAppointment) {
+            $servicesTotal = $nextAppointment->services->sum(fn($s) => (float) $s->current_price);
+
+            $nextAppointmentPayload = [
+                'id'         => $nextAppointment->id,
+                'date'       => $nextAppointment->appointment_date,
+                'start_time' => $nextAppointment->start_time,
+                'end_time'   => $nextAppointment->end_time,
+                'barber'     => optional($nextAppointment->barber?->person)->first_name . ' ' .
+                    optional($nextAppointment->barber?->person)->last_name,
+                'services'   => $nextAppointment->services->pluck('name')->values(),
+                'status'     => optional($nextAppointment->status)->name,
+                'total'      => (float) $servicesTotal,
+            ];
+        }
+
+        // Obtener care tips recomendados según los últimos 3 servicios del cliente
+        $careTips = [];
+
+        /** @var \Illuminate\Support\Collection<int, \App\Models\Client> $lastServices */
+        $lastServices = $client->lastThreeServices();
+        if (!empty($lastServices)) {
+
+            $careTips = CareTip::getTipsByServices($lastServices->toArray());
+        }
+
+
+
+
+        // 5) Respuesta final
+        return response()->json([
+            'next_appointment' => $nextAppointmentPayload,
+            'care_tips' => new CareTipCollection($careTips),
+            'errorCode' => '200'
+        ]);
     }
 }

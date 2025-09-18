@@ -38,7 +38,7 @@ class Client extends Model
         // Return only the IDs of the services
         return $appointments->flatMap(function ($appointment) {
             return $appointment->services->pluck('id');
-        })->unique()->values()->toArray();
+        })->unique()->values();
     }
     public function person()
     {
