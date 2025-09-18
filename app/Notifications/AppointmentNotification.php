@@ -59,7 +59,7 @@ type NotificationType =
        
        
             return (new MailMessage)
-                ->subject('Confirmación de tu Cita en Alex Barbershop')
+                ->subject('Confirmación de tu Cita en VIP Stylist Barbershop')
                 ->view('emails.appointment_notification', ['appointment' => $this->appointment]);
        
     }

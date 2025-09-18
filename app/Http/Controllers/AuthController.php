@@ -113,25 +113,10 @@ class AuthController extends Controller
         $person = $user->person;
         $role = $user->role->name;
 
-        // Obtener care tips recomendados según los últimos 3 servicios del cliente
-        $careTips = [];
-        if ($role === 'Cliente') {
-            $client = $user->person->client;
-            if ($client) {
-                $lastServices = $client->lastThreeServices();
-
-                if (!empty($lastServices)) {
-
-                    $careTips = \App\Models\CareTip::getTipsByServices($lastServices);
-                }
-            }
-        }
-
         return [
             'access_token' => $token, // Esto retorna el token correctamente
             'token_type' => 'Bearer',
             'user' => new UserResource($user),
-            'care_tips' => new CareTipCollection($careTips),
             'errorCode' => '200'
         ];
     }
