@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Barber;
+use App\Models\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Services\ReportService;
@@ -69,6 +70,13 @@ class ReportController extends Controller
         return response()->json($summary);
     }
 
+    public function getClientSummary(Client $client)
+    {
+
+        $summary = $this->reportService->getClientDashboard($client);
+
+        return response()->json($summary);
+    }
 
     /**
      * Display a listing of the resource.

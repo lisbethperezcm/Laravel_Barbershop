@@ -40,7 +40,7 @@ class WelcomeNotification extends Notification
         ->line('Gracias por registrarte en nuestra barbería. Estamos felices de tenerte con nosotros.')
         ->line('Ahora puedes agendar tu primera cita con nosotros y disfrutar de nuestros servicios.')
         ->line('Si tienes alguna duda, contáctanos. ¡Nos vemos pronto!')
-        ->salutation('Saludos, AlexBarbershop');
+        ->salutation('Saludos, VIP Stylist Barbershop');
     }
 
     /**
