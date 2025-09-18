@@ -1,8 +1,8 @@
 @php
-    $shopName = "Alex Barbershop";
+    $shopName = "VIP Stylist Barbershop";
     $shopAddress = "Calle Principal 123, Ciudad";
     $shopPhone = "+34 123 456 789";
-    $shopEmail = "citas@alexbarbershop.com";
+    $shopEmail = "citas@VIP Stylist.com";
 
     $appointmentId = $appointment->id ?? 'N/A';
     $customerName = ucwords(strtolower($appointment->client->person->first_name . ' ' . $appointment->client->person->last_name ?? 'Cliente no disponible'));
