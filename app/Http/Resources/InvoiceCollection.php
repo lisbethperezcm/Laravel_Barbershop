@@ -19,10 +19,15 @@ class InvoiceCollection extends ResourceCollection
             return [
                 'id'             => $invoice->id,
                 'appointment_id' => $invoice->appointment_id,
-                'status'         => $invoice->status?->name,
-                'client_name'    => trim(
+                'status'         => $invoice->status?->name,  
+                  // 🔹 Datos del cliente solicitados
+                'client_id'     => $invoice->client_id ?? $invoice->client?->id,
+                 'client_name'    => trim(
                     ($invoice->client->person->first_name ?? '') . ' ' . ($invoice->client->person->last_name ?? '')
                 ),
+                'address'       =>  $invoice->client->person->address ?? $invoice->client?->address ?? 'Desconocido',
+                'phone_number'  =>  $invoice->client->person->phone_number ?? $invoice->client?->phone_number ?? 'Desconocido',
+
                 'payment_type' => $invoice->paymentType?->name,
                 'details' => $invoice->invoiceDetails->map(function ($detail) {
                     $isService = !is_null($detail->service_id);
