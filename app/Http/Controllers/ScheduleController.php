@@ -46,16 +46,37 @@ class ScheduleController extends Controller
             ], 401);
         }
 
+        $request->validate([
+            'date'     => ['required', 'date'],
+            'duration' => ['required', 'integer', 'min:1'],
+            'barber_id' => ['nullable', 'integer', 'exists:barbers,id'],
+        ]);
 
         //
         $barberId = $request->barber_id ?? ($user->person->barber->id ?? null);
         $date = $request->date;
-        $dayOfWeek = Carbon::parse($date)->dayOfWeek;
+        $dayOfWeek = Carbon::parse($date)->dayOfWeekIso;
         $duration = $request->duration; // Duración del servicio en minutos
 
+        $suggestedBarber = null;
+
+        if (!$barberId) {
+            $barberId = $this->pickLeastLoadedBarberIdByCount($date);
+            $suggestedBarber = $barberId;
+
+            if (!$barberId) {
+                return response()->json([
+                    'barber_id' => 0,
+                    'data'      => [],
+                    'message'   => 'Ningún barbero disponible para esta fecha.',
+                    'errorCode' => '200'
+                ], 200);
+            }
+        }
         // Obtener horario del barbero basado en el día de la semana
         $schedule = Schedule::where('barber_id', $barberId)
             ->where('day_id', $dayOfWeek)
+            ->where('status_id', 1) // Validar que el horario esté activo
             ->first();
 
         if (!$schedule) {
@@ -118,12 +139,20 @@ class ScheduleController extends Controller
             }
         }
 
-        //Retornar los espacios disponibles
-        return response()->json([
-            'data' => $availableSlots,
+        // 🔹 Construir respuesta dinámica
+        $response = [
+            'data'      => $availableSlots,
             'errorCode' => '200'
-        ], 200);
+        ];
+
+        // Solo agregar suggested_barber si fue autoasignado
+        if ($suggestedBarber && !$request->has('barber_id')) {
+            $response['suggested_barber'] = $suggestedBarber;
+        }
+
+        return response()->json($response, 200);
     }
+
 
 
     public function toggleStatus(Request $request)
@@ -166,21 +195,56 @@ class ScheduleController extends Controller
         ], 200);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    /* Seleccionar el barbero con menos citas en una fecha dada */
+
+    private function pickLeastLoadedBarberIdByCount(string $date): ?int
     {
-        //
+        $day    = Carbon::parse($date);
+        $isoDow = $day->dayOfWeekIso;   // 1=Lun … 7=Dom
+        $year   = (int) $day->year;
+        $month  = (int) $day->month;
+
+        // Ajusta según tus estados que bloquean agenda
+        $blockingStatuses = [3, 5, 7];
+
+        return Barber::query()
+            // Solo barberos con horario ACTIVO ese día
+            ->whereExists(function ($q) use ($isoDow) {
+                $q->selectRaw(1)
+                    ->from('schedules')
+                    ->whereColumn('schedules.barber_id', 'barbers.id')
+                    ->where('schedules.day_id', $isoDow)
+                    ->where('schedules.status_id', 1); // o ->where('status', 'active')
+            })
+
+            // Carga del DÍA
+            ->leftJoin('appointments as a_day', function ($join) use ($date, $blockingStatuses) {
+                $join->on('a_day.barber_id', '=', 'barbers.id')
+                    ->whereDate('a_day.appointment_date', $date)
+                    ->whereIn('a_day.status_id', $blockingStatuses);
+            })
+
+            // Carga del MES
+            ->leftJoin('appointments as a_mon', function ($join) use ($year, $month, $blockingStatuses) {
+                $join->on('a_mon.barber_id', '=', 'barbers.id')
+                    ->whereYear('a_mon.appointment_date', $year)
+                    ->whereMonth('a_mon.appointment_date', $month)
+                    ->whereIn('a_mon.status_id', $blockingStatuses);
+            })
+
+            ->select('barbers.id')
+            ->selectRaw('COALESCE(COUNT(a_day.id), 0)  AS day_count')
+            ->selectRaw('COALESCE(COUNT(a_mon.id), 0)  AS month_count')
+            ->groupBy('barbers.id')
+
+            // Menos citas hoy → menos citas en el mes → aleatorio entre empatados
+            ->orderBy('day_count', 'asc')
+            ->orderBy('month_count', 'asc')
+            ->orderByRaw('RAND()')  // equitativo en empates
+
+            ->value('barbers.id');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Schedule $schedule)
-    {
-        //
-    }
 
     /**
      * Update the specified resource in storage.
@@ -192,10 +256,6 @@ class ScheduleController extends Controller
         $schedule = $barber->schedule;
         // Validación ligera basada en lo que aceptamos actualizar  
 
-
-      
-
-
         if ($request->filled('schedules')) {
             foreach ($request->input('schedules') as $sch) {
                 Schedule::updateOrCreate(
@@ -206,14 +266,14 @@ class ScheduleController extends Controller
                     [
                         'start_time' => $sch['start_time'],
                         'end_time'   => $sch['end_time'],
-                        'status'     => $sch['status'] ?? 'active',
+                        'status_id'  => $sch['status_id'] ?? '1',
                     ]
                 );
             }
         }
 
         // Devolver los horarios del barbero actualizados
-    $barber->load(['schedules' => fn ($q) => $q->orderBy('day_id')]);
+        $barber->load(['schedules' => fn($q) => $q->orderBy('day_id')]);
 
 
 

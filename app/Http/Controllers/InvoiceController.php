@@ -55,14 +55,18 @@ class InvoiceController extends Controller
             'reference_number' => $request->reference_number,
             'aprovation_number' => $request->aprovation_number,
             'products' => $request->products,
-            
+
         ]);
 
-        // Enviar la notificación
-    //    $user->notify(new InvoiceGeneratedNotification($invoice));
+
+
 
         $invoice = Invoice::with(['appointment', 'client.person', 'invoiceDetails.product', 'invoiceDetails.service'])
             ->find($invoice->id);
+
+            
+        // Enviar la notificación
+       $invoice->client->person->user?->notify(new InvoiceGeneratedNotification($invoice));
 
         // Retornar la respuesta
         return response()->json([
@@ -74,7 +78,7 @@ class InvoiceController extends Controller
     public function update(InvoiceRequest $request, Invoice $invoice)
     {
 
-          $user = auth()->user();
+        $user = auth()->user();
         $invoice = $this->invoiceService->updateInvoice($invoice, [
             'appointment_id' => $request->input('appointment_id'),
             'client_id' => $request->input('client_id'),
@@ -94,7 +98,7 @@ class InvoiceController extends Controller
         ], 200);
     }
 
-     /**
+    /**
      * Eliminar una factura.
      *
      * @param  Invoice  $invoice
@@ -107,7 +111,7 @@ class InvoiceController extends Controller
 
         return response()->json([
             'message' => 'Factura eliminada correctamente',
-        'errorCode' => 200
+            'errorCode' => 200
         ], 200);
     }
 }

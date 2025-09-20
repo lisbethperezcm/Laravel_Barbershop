@@ -38,7 +38,7 @@ type NotificationType =
      *
      * @return array<int, string>
      */
-     public function via(object $notifiable): array
+    public function via(object $notifiable): array
     {
         $role = strtolower($notifiable->role->name ?? '');
 
@@ -56,16 +56,15 @@ type NotificationType =
      */
     public function toMail(object $notifiable): ?MailMessage
     {
-       
-       
-            return (new MailMessage)
-                ->subject('Confirmación de tu Cita en VIP Stylist Barbershop')
-                ->view('emails.appointment_notification', ['appointment' => $this->appointment]);
-       
+
+
+        return (new MailMessage)
+            ->subject('Confirmación de tu Cita en VIP Stylist Barbershop')
+            ->view('emails.appointment_notification', ['appointment' => $this->appointment]);
     }
 
 
-    
+
     public function toDatabase($notifiable): array
     {
         // Detectar rol del receptor para personalizar el mensaje
@@ -81,7 +80,7 @@ type NotificationType =
             return [
                 'title' => 'Tu cita ha sido reservada',
                 'type' => 'new_appointment',
-                'body'  => "Tienes una cita con el barbero {$barberName} el {$date} a las {$time}.",
+                'body'  => "Agendaste una cita con el barbero {$barberName} el {$date} a las {$time}.",
                 'appointment_id' => $this->appointment->id,
                 'role' => 'cliente',
             ];
@@ -89,9 +88,9 @@ type NotificationType =
 
         if ($this->role === 'barbero') {
             return [
-                'title' => 'Nueva cita asignada',
+                'title' => 'Nueva cita agendada',
                 'type' => 'new_appointment',
-                'body'  => "Atenderás a {$clientName} el {$date} a las {$time}.",
+                'body'  => " {$clientName} agendó una cita para {$date} a las {$time}.",
                 'appointment_id' => $this->appointment->id,
                 'role' => 'barbero',
             ];
