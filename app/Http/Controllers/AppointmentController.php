@@ -69,8 +69,7 @@ class AppointmentController extends Controller
      */
     public function store(AppointmentRequest $request)
     {
-
-        //Obtener el usuario autenticado 
+        // Usuario autenticado
         $user = auth()->user();
         if (!$user) {
             return response([
@@ -82,7 +81,6 @@ class AppointmentController extends Controller
         $client_id = $request->client_id ?? $user->person->client->id ?? null;
         $barber_id = $request->barber_id ?? $user->person->barber->id ?? null;
 
-        // Verificar si el usuario tiene un cliente asociado
         if (!$client_id) {
             return response([
                 'message' => 'Cliente no encontrado.',
@@ -91,10 +89,10 @@ class AppointmentController extends Controller
         }
 
         $appointmentDate = $request->appointment_date;
-        $start_time = Carbon::parse($request->start_time)->format('H:i:s');
-        $end_time = Carbon::parse($request->end_time)->format('H:i:s');
+        $start_time = \Carbon\Carbon::parse($request->start_time)->format('H:i:s');
+        $end_time   = \Carbon\Carbon::parse($request->end_time)->format('H:i:s');
 
-        // Verificar si el cliente ya tiene otra cita en el mismo horario
+        // Conflicto de cliente en el mismo horario
         $clientConflict = Appointment::where('client_id', $client_id)
             ->where('appointment_date', $appointmentDate)
             ->where('status_id', '!=', 6)
@@ -115,32 +113,58 @@ class AppointmentController extends Controller
                 'errorCode' => '422'
             ], 422);
         }
+
         // Crear la cita
         $appointment = new Appointment();
-        $appointment->client_id = $client_id;
-        $appointment->barber_id = $barber_id;
-        $appointment->appointment_date = $request->appointment_date;
-        $appointment->start_time = Carbon::parse($request->start_time)->format('H:i:s');
-        $appointment->end_time = Carbon::parse($request->end_time)->format('H:i:s');
-        $appointment->status_id = 3;
-
-
-        // Guardar la cita
+        $appointment->client_id        = $client_id;
+        $appointment->barber_id        = $barber_id;
+        $appointment->appointment_date = $appointmentDate;
+        $appointment->start_time       = $start_time;
+        $appointment->end_time         = $end_time;
+        $appointment->status_id        = 3; // Reservada (ajusta según tu catálogo)
         $appointment->save();
 
-        // Asociar los servicios a la cita mediante la tabla pivote
+        // Servicios en pivote
         $appointment->services()->attach($request->services);
 
-        //Enviar confirmacion de la cita por correo
+        // Confirmaciones inmediatas (como ya tenías)
         $appointment->client?->person?->user?->notify(new AppointmentNotification($appointment));
         $appointment->barber?->person?->user?->notify(new AppointmentNotification($appointment));
 
+        /**
+         * ============================
+         *  RECORDATORIOS PROGRAMADOS
+         * ============================
+         */
+        // Fecha/hora inicio cita en TZ local
+        $startAt = \Carbon\Carbon::parse(
+            $appointment->appointment_date . ' ' . $appointment->start_time,
+            'America/Santo_Domingo'
+        );
+
+        // Instantes de disparo
+        $sendDayBefore  = $startAt->copy()->subDay();
+        $sendHourBefore = $startAt->copy()->subHour();
+
+        // Notificables
+        $clientUser = $appointment->client?->person?->user;
+
+        // Programa solo si la fecha de envío es futura
+        if ($clientUser) {
+            if ($sendDayBefore->isFuture()) {
+                $clientUser->notify((new \App\Notifications\AppointmentReminder($appointment, 'day_before'))->delay($sendDayBefore));
+            }
+            if ($sendHourBefore->isFuture()) {
+                $clientUser->notify((new \App\Notifications\AppointmentReminder($appointment, 'one_hour'))->delay($sendHourBefore));
+            }
+        }
+
+        // Respuesta
         $appointment = new AppointmentResource($appointment);
-        // Retornar respuesta
         return response()->json([
-            'message' => 'Cita creada exitosamente.',
+            'message'     => 'Cita creada exitosamente.',
             'appointment' => $appointment,
-            'errorCode' => '201'
+            'errorCode'   => '201'
         ], 201);
     }
 
@@ -161,7 +185,7 @@ class AppointmentController extends Controller
         ], 200);
     }
 
-     public function getAppointmentByClient(GetAppointmentsRequest $request)
+    public function getAppointmentByClient(GetAppointmentsRequest $request)
     {
         // 👀 Log para ver qué params llegan en la query string
         Log::info('getAppointmentByClient query', $request->query());
@@ -197,7 +221,7 @@ class AppointmentController extends Controller
     public function getAppointmentByBarber(GetAppointmentsRequest $request)
     {
         // 👀 Log para ver qué params llegan en la query string
-       // Log::info('getAppointmentByBarber query', $request->query());
+        // Log::info('getAppointmentByBarber query', $request->query());
 
         //$user = auth()->user();
         // Obtener el status_id del request (si viene)
@@ -261,38 +285,38 @@ class AppointmentController extends Controller
      * Actualizar el status de la cita
      */
 
-   public function updateStatus(Request $request, Appointment $appointment)
-{
-    $data = $request->validate([
-        'status' => 'required|exists:statuses,id',
-    ]);
+    public function updateStatus(Request $request, Appointment $appointment)
+    {
+        $data = $request->validate([
+            'status' => 'required|exists:statuses,id',
+        ]);
 
-    $newStatusId = (int) $data['status'];
-    $currentName = $appointment->status->name;        // p.ej. 'Completado', 'Cancelado'
-    $targetStatus = Status::findOrFail($newStatusId); 
+        $newStatusId = (int) $data['status'];
+        $currentName = $appointment->status->name;        // p.ej. 'Completado', 'Cancelado'
+        $targetStatus = Status::findOrFail($newStatusId);
 
-    // Reglas de negocio de cambio de estado
-    if ($currentName === 'Completado') {
+        // Reglas de negocio de cambio de estado
+        if ($currentName === 'Completado') {
+            return response()->json([
+                'message' => 'No puedes cambiar el estado de una cita que ya está completada.'
+            ], 400);
+        }
+
+        // Si la cita está cancelada, no permitir cambiar a otro estado
+        if ($currentName === 'Cancelado' && $targetStatus->name !== 'Cancelado') {
+            return response()->json([
+                'message' => 'No puedes modificar una cita que ha sido cancelada.'
+            ], 400);
+        }
+
+        // Actualizar el estado de la cita
+        $appointment->update(['status_id' => $newStatusId]);
+
+
         return response()->json([
-            'message' => 'No puedes cambiar el estado de una cita que ya está completada.'
-        ], 400);
-    }
-
-    // Si la cita está cancelada, no permitir cambiar a otro estado
-    if ($currentName === 'Cancelado' && $targetStatus->name !== 'Cancelado') {
-        return response()->json([
-            'message' => 'No puedes modificar una cita que ha sido cancelada.'
-        ], 400);
-    }
-
-    // Actualizar el estado de la cita
-    $appointment->update(['status_id' => $newStatusId]);
-
-  
-    return response()->json([
-        'message'     => "Cita marcada como {$appointment->status->name}.",
-        'appointment' => new AppointmentResource($appointment->fresh()),
-        'errorCode'   => '200',
+            'message'     => "Cita marcada como {$appointment->status->name}.",
+            'appointment' => new AppointmentResource($appointment->fresh()),
+            'errorCode'   => '200',
         ], 200);
     }
 

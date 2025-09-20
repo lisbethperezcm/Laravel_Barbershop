@@ -90,13 +90,10 @@ class AppointmentRequest extends FormRequest
             $end_time = Carbon::parse($this->end_time);
 
             // Obtener horario del barbero
-            $dayOfWeek = $appointmentDate->dayOfWeek;
-
-            // Ajustar para tu tabla Days (1=lunes...7=domingo)
-            $mysqlDayId = $dayOfWeek === 0 ? 7 : $dayOfWeek;
+            $dayOfWeek = $appointmentDate->dayOfWeekIso;
 
             $schedule = Schedule::where('barber_id', $barberId)
-                ->where('day_id', $mysqlDayId)
+                ->where('day_id', $dayOfWeek)
                 ->first();
 
             if ($schedule) {
