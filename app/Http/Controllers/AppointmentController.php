@@ -13,7 +13,8 @@ use App\Http\Requests\AppointmentRequest;
 use App\Http\Resources\AppointmentResource;
 use App\Http\Requests\GetAppointmentsRequest;
 use App\Http\Resources\AppointmentCollection;
-use App\Notifications\AppointmentNotification;
+use App\Notifications\AppointmentNotificationClient;
+use App\Notifications\AppointmentNotificationBarber;
 
 class AppointmentController extends Controller
 {
@@ -128,8 +129,8 @@ class AppointmentController extends Controller
         $appointment->services()->attach($request->services);
 
         // Confirmaciones inmediatas (como ya tenías)
-        $appointment->client?->person?->user?->notify(new AppointmentNotification($appointment));
-        $appointment->barber?->person?->user?->notify(new AppointmentNotification($appointment));
+        $appointment->client?->person?->user?->notify(new AppointmentNotificationClient($appointment));
+        $appointment->barber?->person?->user?->notify(new AppointmentNotificationBarber($appointment));
 
         /**
          * ============================

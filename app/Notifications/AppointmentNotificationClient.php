@@ -8,17 +8,17 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use App\Helpers\DateHelper;
 
-class AppointmentNotification extends Notification
+class AppointmentNotificationClient extends Notification
 {
     use Queueable;
 
     protected $appointment;
-    protected $role;
+
 
     /*
 
     Tipos de las notificaciones
-type NotificationType =
+    type NotificationType =
   | "new_appointment"
   | "reminder"
   | "canceled"
@@ -40,14 +40,13 @@ type NotificationType =
      */
     public function via(object $notifiable): array
     {
-        $role = strtolower($notifiable->role->name ?? '');
+
 
         // Siempre guardamos en DB; email solo para clientes
-        $channels = ['database'];
+        $channels = ['database', 'mail'];
 
-        if ($role === 'cliente') {
-            $channels[] = 'mail';
-        }
+
+
 
         return $channels;
     }
@@ -67,44 +66,29 @@ type NotificationType =
 
     public function toDatabase($notifiable): array
     {
-        // Detectar rol del receptor para personalizar el mensaje
-        $roleName = strtolower($notifiable->role->name ?? '');
+        // $this->roleName ya fue seteado en via()
         $time = DateHelper::formatTime12($this->appointment->start_time);
         $date = DateHelper::formatDateLong($this->appointment->appointment_date);
-        $barberName = $this->appointment->barber->person->first_name . ' ' . $this->appointment->barber->person->last_name;
-        $clientName = $this->appointment->client->person->first_name . ' ' . $this->appointment->client->person->last_name;
+
+        $clientFirst = $this->appointment->client?->person?->first_name ?? '';
+        $clientLast  = $this->appointment->client?->person?->last_name  ?? '';
+        $clientName  = trim("$clientFirst $clientLast");
+
+        $barberFirst = $this->appointment->barber?->person?->first_name ?? '';
+        $barberLast  = $this->appointment->barber?->person?->last_name  ?? '';
+        $barberName  = trim("$barberFirst $barberLast");
 
 
-
-        if ($this->role === 'cliente') {
-            return [
-                'title' => 'Tu cita ha sido reservada',
-                'type' => 'new_appointment',
-                'body'  => "Agendaste una cita con el barbero {$barberName} el {$date} a las {$time}.",
-                'appointment_id' => $this->appointment->id,
-                'role' => 'cliente',
-            ];
-        }
-
-        if ($this->role === 'barbero') {
-            return [
-                'title' => 'Nueva cita agendada',
-                'type' => 'new_appointment',
-                'body'  => " {$clientName} agendó una cita para {$date} a las {$time}.",
-                'appointment_id' => $this->appointment->id,
-                'role' => 'barbero',
-            ];
-        }
-
-        // Fallback (admin u otros)
         return [
-            'title' => 'Cita registrada',
-            'type' => 'new_appointment',
-            'body'  => "Se creó una cita el {$date} a las {$time}.",
+            'title'          => 'Tu cita ha sido reservada',
+            'type'           => 'new_appointment',
+            'body'           => "Agendaste una cita con el barbero {$barberName} el {$date} a las {$time}.",
             'appointment_id' => $this->appointment->id,
-            'role' => $roleName ?: 'unknown',
+            'role'           => 'cliente',
         ];
     }
+
+
 
 
     /**
