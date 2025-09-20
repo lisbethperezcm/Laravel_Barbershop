@@ -35,6 +35,7 @@ class WelcomeNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
        return (new MailMessage)
+            // Enviar notificación de bienvenida
         ->subject('Bienvenido a nuestra Barbería')
         ->view('emails.welcome_notification', [
             'notifiable' => $notifiable,
