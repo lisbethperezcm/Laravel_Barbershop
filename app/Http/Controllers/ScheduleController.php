@@ -197,34 +197,36 @@ class ScheduleController extends Controller
 
     /* Seleccionar el barbero con menos citas en una fecha dada */
 
+
+
     private function pickLeastLoadedBarberIdByCount(string $date): ?int
     {
         $day    = Carbon::parse($date);
-        $isoDow = $day->dayOfWeekIso;   // 1=Lun … 7=Dom
+        $isoDow = $day->dayOfWeekIso;
         $year   = (int) $day->year;
         $month  = (int) $day->month;
 
-        // Ajusta según tus estados que bloquean agenda
+        // Estados que bloquean agenda
         $blockingStatuses = [3, 5, 7];
 
         return Barber::query()
-            // Solo barberos con horario ACTIVO ese día
+            // Solo barberos con horario ACTIVO ese día de la semana
             ->whereExists(function ($q) use ($isoDow) {
                 $q->selectRaw(1)
                     ->from('schedules')
                     ->whereColumn('schedules.barber_id', 'barbers.id')
                     ->where('schedules.day_id', $isoDow)
-                    ->where('schedules.status_id', 1); // o ->where('status', 'active')
+                    ->where('schedules.status_id', 1); // activo
             })
 
-            // Carga del DÍA
+            // Conteo del DÍA (LEFT JOIN con alias a_day)
             ->leftJoin('appointments as a_day', function ($join) use ($date, $blockingStatuses) {
                 $join->on('a_day.barber_id', '=', 'barbers.id')
                     ->whereDate('a_day.appointment_date', $date)
                     ->whereIn('a_day.status_id', $blockingStatuses);
             })
 
-            // Carga del MES
+            // Conteo del MES (LEFT JOIN con alias a_mon)
             ->leftJoin('appointments as a_mon', function ($join) use ($year, $month, $blockingStatuses) {
                 $join->on('a_mon.barber_id', '=', 'barbers.id')
                     ->whereYear('a_mon.appointment_date', $year)
@@ -233,14 +235,15 @@ class ScheduleController extends Controller
             })
 
             ->select('barbers.id')
-            ->selectRaw('COALESCE(COUNT(a_day.id), 0)  AS day_count')
-            ->selectRaw('COALESCE(COUNT(a_mon.id), 0)  AS month_count')
+            // DISTINCT evita inflar los conteos por el doble join
+            ->selectRaw('COALESCE(COUNT(DISTINCT a_day.id), 0)  AS day_count')
+            ->selectRaw('COALESCE(COUNT(DISTINCT a_mon.id), 0)  AS month_count')
             ->groupBy('barbers.id')
 
-            // Menos citas hoy → menos citas en el mes → aleatorio entre empatados
+            // Desempate: día → mes → aleatorio
             ->orderBy('day_count', 'asc')
             ->orderBy('month_count', 'asc')
-            ->orderByRaw('RAND()')  // equitativo en empates
+            ->orderByRaw('RAND()') // MySQL; usa random() si es Postgres
 
             ->value('barbers.id');
     }
