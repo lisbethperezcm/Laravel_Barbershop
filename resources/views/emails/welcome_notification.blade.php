@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Contraseña Temporal</title>
+    <title>Bienvenido a VIP Stylist</title>
 </head>
 <body style="font-family: Arial, sans-serif; background-color: #f4f4f7; margin: 0; padding: 0;">
     <table width="100%" cellpadding="0" cellspacing="0">
@@ -18,24 +18,16 @@
                     <!-- Body -->
                     <tr>
                         <td style="padding: 30px; color: #333333;">
-                            <h2 style="margin-top: 0; color: #0F172A;">Bienvenido/a 🎉</h2>
+                            <h2 style="margin-top: 0; color: #0F172A;">Hola, {{ $notifiable->person->first_name }} 👋</h2>
                             <p style="font-size: 16px; line-height: 1.5;">
-                                Se ha generado una <strong>contraseña temporal</strong> para tu cuenta:
-                            </p>
-                            <!-- Contraseña -->
-                            <p style="background: #0F172A; color: #ffffff; font-size: 20px; font-weight: bold; text-align: center; padding: 15px; border-radius: 8px; letter-spacing: 2px;">
-                                {{ $password }}
+                                ¡Gracias por registrarte en nuestra barbería! 🎉  
+                                Estamos felices de tenerte con nosotros.
                             </p>
                             <p style="font-size: 15px; line-height: 1.5; margin-top: 20px;">
-                                Por favor, inicia sesión con esta contraseña y cámbiala lo antes posible desde la configuración de tu cuenta.
+                                Ahora puedes agendar tu primera cita con nosotros y disfrutar de nuestros servicios.  
+                                Si tienes alguna duda, contáctanos. ¡Nos vemos pronto!
                             </p>
-                            <!-- Botón -->
-                            <div style="text-align: center; margin-top: 30px;">
-                                <a href="{{ url('/') }}" target="_blank"
-                                   style="background: #0F172A; color: #ffffff; text-decoration: none; font-size: 16px; padding: 12px 25px; border-radius: 6px; display: inline-block;">
-                                    Ir a VIP Stylist
-                                </a>
-                            </div>
+                        
                         </td>
                     </tr>
                     <!-- Footer -->

@@ -34,13 +34,11 @@ class WelcomeNotification extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)
+       return (new MailMessage)
         ->subject('Bienvenido a nuestra Barbería')
-        ->greeting('Hola, ' . $notifiable->person->first_name . ' 👋')
-        ->line('Gracias por registrarte en nuestra barbería. Estamos felices de tenerte con nosotros.')
-        ->line('Ahora puedes agendar tu primera cita con nosotros y disfrutar de nuestros servicios.')
-        ->line('Si tienes alguna duda, contáctanos. ¡Nos vemos pronto!')
-        ->salutation('Saludos, VIP Stylist Barbershop');
+        ->view('emails.welcome_notification', [
+            'notifiable' => $notifiable,
+        ]);
     }
 
     /**
