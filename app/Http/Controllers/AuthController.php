@@ -63,7 +63,8 @@ class AuthController extends Controller
         );*/
 
         // $user->sendEmailVerificationNotification();
-
+        
+        // Enviar notificación de bienvenida
         $user->notify(new WelcomeNotification());
 
           // 🔹 Si la contraseña fue generada automáticamente, enviar correo con la contraseña temporal
