@@ -108,7 +108,6 @@ class ProductController extends Controller
 
         $products = Product::where('stock', '<=', $threshold)
             ->orderBy('stock', 'asc')
-            ->select('id', 'name', 'stock')
             ->get();
 
         return response()->json([
