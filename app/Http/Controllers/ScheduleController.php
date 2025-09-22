@@ -94,57 +94,116 @@ class ScheduleController extends Controller
         // 2Obtener todas las citas reservadas de ese día
         $appointments = Appointment::where('barber_id', $barberId)
             ->whereDate('appointment_date', $date)
+            ->whereIn('status_id', [3, 5, 7])
             ->orderBy('start_time')
             ->get(['start_time', 'end_time']);
 
-        // Determinar los espacios vacíos entre citas
+
         $freeSlots = [];
         $currentStart = $workStart->copy();
 
         foreach ($appointments as $appointment) {
             $appointmentStart = Carbon::parse($appointment->start_time);
-            $appointmentEnd = Carbon::parse($appointment->end_time);
+            $appointmentEnd   = Carbon::parse($appointment->end_time);
 
-            //Obtener espacios libre entre el horario actual y las citas
             if ($currentStart->lt($appointmentStart)) {
                 $freeSlots[] = [
                     'start_time' => $currentStart->copy(),
-                    'end_time' => $appointmentStart->copy(),
+                    'end_time'   => $appointmentStart->copy(),
                 ];
             }
-
-            // Avanzar al final de la cita 
             $currentStart = $appointmentEnd->copy();
         }
 
-        //Recorrer los espacios libres hasta finalizar al final de la jornada
         if ($currentStart->lt($workEnd)) {
             $freeSlots[] = [
                 'start_time' => $currentStart->copy(),
-                'end_time' => $workEnd->copy(),
+                'end_time'   => $workEnd->copy(),
             ];
         }
 
-        // Generar intervalos disponibles dentro de los espacios vacíos
-        $availableSlots = [];
-
-        foreach ($freeSlots as $slot) {
-            $start = $slot['start_time'];
-            $end = $slot['end_time'];
-
-            while ($start->addMinutes($duration)->lte($end)) {
-                $availableSlots[] = [
-                    'start_time' => $start->copy()->subMinutes($duration)->format('H:i'),
-                    'end_time' => $start->copy()->format('H:i'),
-                ];
+        /* ============================
+   ⚠️ Ajuste por almuerzo 
+   ============================ */
+        $lunchStart = null;
+        $lunchEnd   = null;
+        if ($barberId) {
+            $barber = Barber::find($barberId);
+            if ($barber && $barber->lunch_start && $barber->lunch_end && $barber->lunch_end > $barber->lunch_start) {
+                $lunchStart = Carbon::parse($barber->lunch_start);
+                $lunchEnd   = Carbon::parse($barber->lunch_end);
             }
         }
 
-        // 🔹 Construir respuesta dinámica
-        $response = [
-            'data'      => $availableSlots,
-            'errorCode' => '200'
-        ];
+        if ($lunchStart && $lunchEnd) {
+            $adjustedFree = [];
+            foreach ($freeSlots as $slot) {
+                $s = $slot['start_time'];
+                $e = $slot['end_time'];
+
+                // sin solape con almuerzo → se queda igual
+                if ($e->lte($lunchStart) || $s->gte($lunchEnd)) {
+                    $adjustedFree[] = ['start_time' => $s, 'end_time' => $e];
+                    continue;
+                }
+
+                // el almuerzo recorta por el medio 
+                if ($s->lt($lunchStart) && $e->gt($lunchEnd)) {
+                    $adjustedFree[] = ['start_time' => $s->copy(),          'end_time' => $lunchStart->copy()];
+                    $adjustedFree[] = ['start_time' => $lunchEnd->copy(),    'end_time' => $e->copy()];
+                    continue;
+                }
+
+                // el almuerzo tapa el inicio del hueco → corre inicio al fin del almuerzo
+                if ($s->lt($lunchEnd) && $e->gt($lunchEnd)) {
+                    $adjustedFree[] = ['start_time' => $lunchEnd->copy(), 'end_time' => $e->copy()];
+                    continue;
+                }
+
+                // el almuerzo tapa el final del hueco → recorta final al inicio del almuerzo
+                if ($s->lt($lunchStart) && $e->gt($lunchStart)) {
+                    $adjustedFree[] = ['start_time' => $s->copy(), 'end_time' => $lunchStart->copy()];
+                    continue;
+                }
+
+               
+            }
+            $freeSlots = $adjustedFree;
+        }
+
+        // 🔹 Generar intervalos disponibles dentro de los espacios vacíos
+        // 1) Generar los slots
+        $availableSlots = [];
+
+        foreach ($freeSlots as $slot) {
+            $start = $slot['start_time']->copy();
+            $end   = $slot['end_time']->copy();
+
+            while ($start->copy()->addMinutes($duration)->lte($end)) {
+                $availableSlots[] = [
+                    'start_time' => $start->format('H:i'), // siempre 24h y con cero a la izquierda
+                    'end_time'   => $start->copy()->addMinutes($duration)->format('H:i'),
+                ];
+                $start->addMinutes($duration);
+            }
+        }
+
+        // 2) Asegurar que sea un array “puro”
+        $availableSlots = is_array($availableSlots) ? $availableSlots : (array) $availableSlots;
+
+        // 3) Ordenar por start_time de forma robusta (en minutos)
+        usort($availableSlots, function ($a, $b) {
+            [$ah, $am] = array_map('intval', explode(':', $a['start_time']));
+            [$bh, $bm] = array_map('intval', explode(':', $b['start_time']));
+            return ($ah * 60 + $am) <=> ($bh * 60 + $bm);
+        });
+
+        // 4) Responder JSON
+        return response()->json([
+            'data' => $availableSlots,
+            'errorCode' => '200',
+        ]);
+
 
         // Solo agregar suggested_barber si fue autoasignado
         if ($suggestedBarber && !$request->has('barber_id')) {
@@ -154,7 +213,7 @@ class ScheduleController extends Controller
         return response()->json($response, 200);
     }
 
- public function getLunchTime(Barber $barber)
+    public function getLunchTime(Barber $barber)
     {
         $barber = Barber::findOrFail($barber->id);
 
