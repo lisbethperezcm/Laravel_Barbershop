@@ -20,6 +20,8 @@ class Barber extends Model
     protected $fillable = [
         'person_id', // Relación con la tabla Persona
         'status', // 'active' o 'inactive'
+        'lunch_start', // Hora de inicio del almuerzo
+        'lunch_end', // Hora de fin del almuerzo
 
     ];
     protected $casts = [
