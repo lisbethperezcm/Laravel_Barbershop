@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('person_id')->constrained('people')->onDelete('cascade');
             $table->string('status')->default('inactive'); // Usando string con valor por defecto 'inactive'
+            $table->time('lunch_start')->nullable(); // Hora de inicio del almuerzo
+            $table->time('lunch_end')->nullable(); // Hora de fin del almuerzo
             $table->timestamps();
             $table->softDeletes();
         });

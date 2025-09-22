@@ -31,6 +31,7 @@ class ScheduleController extends Controller
         $schedules = Schedule::where('barber_id', $barberId)->get();
 
         return response()->json([
+            'message' => 'Horarios obtenidos exitosamente.',
             'data' => ScheduleResource::collection($schedules),
             'errorCode' => '200'
         ], 200);
@@ -153,7 +154,44 @@ class ScheduleController extends Controller
         return response()->json($response, 200);
     }
 
+ public function getLunchTime(Barber $barber)
+    {
+        $barber = Barber::findOrFail($barber->id);
 
+        return response()->json([
+            'lunch_start' => $barber->lunch_start,
+            'lunch_end'   => $barber->lunch_end,
+            'errorCode'   => '200'
+        ], 200);
+    }
+
+    public function updateOrCreateLunchTime(Request $request,)
+    {
+        $request->validate([
+            'barber_id'   => ['required', 'integer', 'exists:barbers,id'],
+            'lunch_start' => ['required', 'date_format:H:i:s'],
+            'lunch_end'   => ['required', 'date_format:H:i:s', 'after:lunch_start'],
+        ]);
+
+        $barber = Barber::findOrFail($request->barber_id);
+
+        Barber::updateOrCreate(
+            ['id' => $barber->id],
+            [
+                'lunch_start' => $request->lunch_start,
+                'lunch_end'   => $request->lunch_end,
+            ]
+        );
+
+        return response()->json([
+            'message' => 'Horario de almuerzo actualizado exitosamente.',
+            'data' => [
+                'lunch_start' => $barber->lunch_start,
+                'lunch_end'   => $barber->lunch_end,
+            ],
+            'errorCode' => '200'
+        ], 200);
+    }
 
     public function toggleStatus(Request $request)
     {
