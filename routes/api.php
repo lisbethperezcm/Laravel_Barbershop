@@ -109,7 +109,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/barbers/schedules/{barber}', [ScheduleController::class, 'update']); //Actualizar horario de barbero
         Route::get('/barbers/lunch_time/{barber}', [ScheduleController::class, 'getLunchTime']); //Obtener horario de almuerzo
         Route::post('/barbers/lunch_time', [ScheduleController::class, 'updateOrCreateLunchTime']); //Actualizar o crear horario de almuerzo
-
+        Route::post('schedules/toggle-status', [ScheduleController::class, 'toggleStatus']); // Inactivar y activar un horario
         /* 📌 CLIENTES (Clients) */
         Route::put('/clients', [ClientController::class, 'update']); // Actualizar un cliente
         Route::delete('/clients/{client}', [ClientController::class, 'destroy']); // Eliminar un cliente
@@ -133,7 +133,7 @@ Route::post('/login', [AuthController::class, 'login']); // Inicia sesión y dev
 // 📌 **BARBEROS (Barbers)**
 Route::get('/barbers', [BarberController::class, 'index']); // Listar todos los barberos
 Route::get('/barbers/{barber}', [BarberController::class, 'show']); // Obtener un barbero por ID
-Route::post('schedules/toggle-status', [ScheduleController::class, 'toggleStatus']); // Inactivar y activar un horario
+
 
 // 📌 **CLIENTES (Clients)**
 Route::get('/clients', [ClientController::class, 'index']); // Listar todos los clientes
