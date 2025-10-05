@@ -23,8 +23,8 @@ class GetInventoryRequest extends FormRequest
     {
         return [
 
-            'start_date' => 'nullable|date|before:end_date',
-            'end_date'   => 'nullable|date|after:start_date',
+            'start_date' => 'nullable|date|before:end_date with:end_date',
+            'end_date'   => 'nullable|date|after:start_date with:start_date',
 
 
         ];
