@@ -22,12 +22,12 @@ class ChangePasswordRequest extends FormRequest
     public function rules(): array
     {
         return [
-           'current_password' => ['required'],
+            'current_password' => ['required'],
             'password' => [
                 'required',
-                'string',
                 'min:8',
-                'confirmed', // exige password_confirmation
+                'confirmed',
+                'regex:/^(?=.*[A-Z])(?=.*[\W_]).+$/'
             ],
         ];
     }

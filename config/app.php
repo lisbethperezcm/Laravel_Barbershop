@@ -70,7 +70,7 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => 'America/Santo_Domingo',
 
     /*
     |--------------------------------------------------------------------------
@@ -167,6 +167,7 @@ return [
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
+         Resend\Laravel\ResendServiceProvider::class,
     ])->toArray(),
 
     /*

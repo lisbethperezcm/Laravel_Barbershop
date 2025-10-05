@@ -57,7 +57,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware(['db.transaction'])->group(function () {
 
         /* 📌 CITAS (Appointments) */
-        Route::post('/appointments', [AppointmentController::class, 'store']); // Crear una nueva cita
+        Route::post('/appointments', [AppointmentController::class, 'store'])->middleware('cap.monthly_active'); // Crear una nueva cita
         Route::put('/appointments/{appointment}', [AppointmentController::class, 'update']); // Actualizar una cita existente
         Route::put('appointments/{appointment}/status', [AppointmentController::class, 'updateStatus']); //Actualizar estatus de la cita
         Route::delete('/appointments/{appointment}', [AppointmentController::class, 'destroy']); // Eliminar una cita
