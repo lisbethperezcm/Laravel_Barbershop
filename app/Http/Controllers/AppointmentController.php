@@ -29,7 +29,7 @@ class AppointmentController extends Controller
         $end      = $request->end_date ?? null;
         $statusId = $request->status_id ?? null;
 
-        $appointments = Appointment::with(['barber.person', 'client.person', 'services', 'createdBy.person'])
+        $appointments = Appointment::with(['barber.person' => fn($q) => $q->withTrashed(), 'client.person' => fn($q) => $q->withTrashed(), 'services' => fn($q) => $q->withTrashed(), 'createdBy.person' => fn($q) => $q->withTrashed()])
             ->filterNameBarberClient($name)        // ← scope (barbero/cliente por nombre)
             ->dateRange($start, $end)              // ← scope (rango de fechas)
             ->byStatus($statusId)                  // ← scope (status por id, opcional)
@@ -39,7 +39,7 @@ class AppointmentController extends Controller
 
         //Retornar el listado de citas formateada con AppointmentCollection
         return response()->json([
-            'data' => $appointments,
+            'data' => new  AppointmentCollection($appointments),
             'errorCode' => '200'
         ], 200);
     }
