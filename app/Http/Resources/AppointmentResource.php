@@ -16,8 +16,8 @@ class AppointmentResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'client_name' => $this->client->person->first_name . ' ' . $this->client->person->last_name,
-            'barber_name' => $this->barber->person->first_name . ' ' . $this->barber->person->last_name,
+            'client_name' => $this->client ? $this->client->person->first_name . ' ' . $this->client->person->last_name : "Desconocido",
+            'barber_name' => $this->barber ? $this->barber->person->first_name . ' ' . $this->barber->person->last_name : "Desconocido",
             'status' => $this->status->name,
             'appointment_date' => $this->appointment_date,
             'start_time' => $this->start_time,

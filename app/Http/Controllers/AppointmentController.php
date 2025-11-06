@@ -39,7 +39,7 @@ class AppointmentController extends Controller
 
         //Retornar el listado de citas formateada con AppointmentCollection
         return response()->json([
-            'data' => new  AppointmentCollection($appointments),
+            'data' => $appointments,
             'errorCode' => '200'
         ], 200);
     }
