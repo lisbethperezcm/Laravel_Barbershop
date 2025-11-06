@@ -32,8 +32,8 @@ class InvoiceController extends Controller
 
     public function index()
     {
-        $invoices = Invoice::with(['appointment', 'client.person', 'invoiceDetails.product', 'invoiceDetails.service'])
-            ->orderBy('created_at', 'desc')
+        $invoices = Invoice::with(['appointment', 'client.person' => fn($q) => $q->withTrashed(),'barber.person' => fn($q) => $q->withTrashed(), 'invoiceDetails.product', 'invoiceDetails.service'])
+        ->orderBy('created_at', 'desc')
             ->paginate(10);
 
         return response()->json([
@@ -61,11 +61,9 @@ class InvoiceController extends Controller
 
 
 
-        $invoice = Invoice::with(['appointment', 'client.person', 'invoiceDetails.product', 'invoiceDetails.service'])
+        $invoice = Invoice::with(['appointment', 'client.person' => fn($q) => $q->withTrashed(), 'barber.person' => fn($q) => $q->withTrashed(), 'invoiceDetails.product', 'invoiceDetails.service'])
             ->find($invoice->id);
-
-            
-        // Enviar la notificación
+    // Enviar la notificación
        $invoice->client->person->user?->notify(new InvoiceGeneratedNotification($invoice));
 
         // Retornar la respuesta

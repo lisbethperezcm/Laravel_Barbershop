@@ -53,8 +53,7 @@ class AppointmentController extends Controller
         $startOfWeek = Carbon::now()->startOfWeek()->toDateString();
         $endOfWeek = Carbon::now()->endOfWeek()->toDateString();
 
-        $appointments = Appointment::with(['barber.person', 'client.person', 'services', 'createdBy.person'])
-
+        $appointments = Appointment::with(['barber.person' => fn($q) => $q->withTrashed(), 'client.person' => fn($q) => $q->withTrashed(), 'services' => fn($q) => $q->withTrashed(), 'createdBy.person' => fn($q) => $q->withTrashed()])
             ->dateRange($startOfWeek, $endOfWeek)  // ← scope (rango de fechas)
             ->orderBy('appointment_date', 'desc')
             ->get();
@@ -205,7 +204,10 @@ class AppointmentController extends Controller
                 'errorCode' => '404'
             ], 404);
         }
-        $appointments = Appointment::with(['barber', 'client', 'services', 'createdBy.person'])
+    
+
+         $appointments = Appointment::with(['barber.person' => fn($q) => $q->withTrashed(), 'client.person' => fn($q) => $q->withTrashed(), 'services' => fn($q) => $q->withTrashed(), 'createdBy.person' => fn($q) => $q->withTrashed()])
+         
             ->where('client_id', $client_id)
             //->byStatus($status_id)
             ->when($status_id, fn($query) => $query->where('status_id', $status_id))
@@ -239,7 +241,7 @@ class AppointmentController extends Controller
             ], 404);
         }
 
-        $appointments = Appointment::with(['barber', 'client', 'services', 'createdBy.person'])
+         $appointments = Appointment::with(['barber.person' => fn($q) => $q->withTrashed(), 'client.person' => fn($q) => $q->withTrashed(), 'services' => fn($q) => $q->withTrashed(), 'createdBy.person' => fn($q) => $q->withTrashed()])
             ->where('barber_id', $barber_id)
             //->byStatus($status_id)
             ->when($status_id, fn($query) => $query->where('status_id', $status_id))
