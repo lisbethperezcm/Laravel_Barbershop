@@ -65,6 +65,8 @@ class ScheduleController extends Controller
             $barberId = $this->pickLeastLoadedBarberIdByCount($date);
             $suggestedBarber = $barberId;
 
+
+
             if (!$barberId) {
                 return response()->json([
                     'barber_id' => 0,
@@ -165,8 +167,6 @@ class ScheduleController extends Controller
                     $adjustedFree[] = ['start_time' => $s->copy(), 'end_time' => $lunchStart->copy()];
                     continue;
                 }
-
-               
             }
             $freeSlots = $adjustedFree;
         }
@@ -199,14 +199,13 @@ class ScheduleController extends Controller
         });
 
         // 4) Responder JSON
-        return response()->json([
+        $response = [
             'data' => $availableSlots,
-            'errorCode' => '200',
-        ]);
-
+            'errorCode' => 200,
+        ];
 
         // Solo agregar suggested_barber si fue autoasignado
-        if ($suggestedBarber && !$request->has('barber_id')) {
+        if (!is_null($suggestedBarber)) {
             $response['suggested_barber'] = $suggestedBarber;
         }
 
