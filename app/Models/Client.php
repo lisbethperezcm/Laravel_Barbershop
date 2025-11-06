@@ -17,6 +17,8 @@ class Client extends Model
     ];
 
     /**
+     * 
+     * 
      * Get the last three services used by the client.
      *
      * This method retrieves the last three completed appointments of the client,
