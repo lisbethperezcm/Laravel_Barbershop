@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/*Modelo cliente*/
 class Client extends Model
 {
     use SoftDeletes, HasFactory;
@@ -17,8 +18,6 @@ class Client extends Model
     ];
 
     /**
-     * 
-     * 
      * Get the last three services used by the client.
      *
      * This method retrieves the last three completed appointments of the client,
