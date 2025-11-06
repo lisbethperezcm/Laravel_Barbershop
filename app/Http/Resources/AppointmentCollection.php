@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Client;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
@@ -40,9 +41,9 @@ class AppointmentCollection extends ResourceCollection
 
             return [
                 'id'               => $appointment->id,
-                'client_id'        => $appointment->client_id,
-                'client_name'      => $appointment->client->person->first_name . ' ' . $appointment->client->person->last_name,
-                'barber_name'      => $appointment->barber->person->first_name . ' ' . $appointment->barber->person->last_name,
+                'client_id'        => $appointment->client_id ? $appointment->client_id :null,
+                'client_name'      => $appointment->client ? $appointment->client->person->first_name . ' ' . $appointment->client->person->last_name : "Desconocido",
+                'barber_name'      => $appointment->barber ? $appointment->barber->person->first_name . ' ' . $appointment->barber->person->last_name : "Desconocido",
                 'appointment_date' => $appointment->appointment_date,
                 'start_time'       => $startDateTime,
                 'end_time'         => $endDateTime,
